@@ -26,9 +26,10 @@ const doctorSchema = mongoose.Schema({
         type: String
     },
     // Availability Schedule (Simple structure for now)
+    // Availability Schedule
     timings: {
-        type: Map, // e.g. "Monday": "09:00-17:00"
-        of: String
+        type: String, // e.g. "Mon-Fri: 09:00-17:00"
+        required: false
     },
     averageConsultationTime: {
         type: Number, // Minutes
