@@ -199,14 +199,33 @@ function DoctorDashboard() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Timings</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
-                                    placeholder="e.g. 9:00 AM - 5:00 PM"
-                                    value={profileForm.timings}
-                                    onChange={(e) => setProfileForm({ ...profileForm, timings: e.target.value })}
-                                />
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Timings (Shift Hours)</label>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-xs text-gray-400 ml-1 mb-1 block">Start Time</label>
+                                        <input
+                                            type="time"
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                            value={profileForm.timings.split(' - ')[0] || ''}
+                                            onChange={(e) => {
+                                                const end = profileForm.timings.split(' - ')[1] || '';
+                                                setProfileForm({ ...profileForm, timings: `${e.target.value} - ${end}` })
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-xs text-gray-400 ml-1 mb-1 block">End Time</label>
+                                        <input
+                                            type="time"
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                            value={profileForm.timings.split(' - ')[1] || ''}
+                                            onChange={(e) => {
+                                                const start = profileForm.timings.split(' - ')[0] || '';
+                                                setProfileForm({ ...profileForm, timings: `${start} - ${e.target.value}` })
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
