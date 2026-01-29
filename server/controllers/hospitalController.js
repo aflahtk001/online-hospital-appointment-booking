@@ -129,48 +129,14 @@ const getHospitalDoctors = async (req, res) => {
 // @desc    Add Doctor to Hospital (Hospital Admin)
 // @route   POST /api/hospitals/doctors
 // @access  Private (Hospital Admin)
-const addDoctorToHospital = async (req, res) => {
-    const { name, email, password, specialization, experience, feesPerConsultation } = req.body;
-
-    try {
-        const hospital = await Hospital.findOne({ admins: req.user.id });
-        if (!hospital) {
-            return res.status(404).json({ message: 'Hospital not found' });
-        }
-
-        // 1. Check if user exists
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: 'User with this email already exists' });
-        }
-
-        // 2. Create User
-        user = await User.create({
-            name,
-            email,
-            password,
-            role: 'doctor',
-            isApproved: true, // Auto-approve since added by Hospital Admin
-            hospitalId: hospital._id
+timings: timings || "Mon-Fri: 09:00 - 17:00", // Use provided or Default
+    status: 'approved' // Auto-approve
         });
 
-        // 3. Create Doctor Profile
-        const Doctor = require('../models/Doctor');
-        const doctor = await Doctor.create({
-            user: user._id,
-            hospital: hospital._id,
-            specialization,
-            experience: experience || 0,
-            feesPerConsultation: feesPerConsultation || 0,
-            qualifications: ['MBBS'], // Default or add to form
-            timings: "Mon-Fri: 09:00 - 17:00", // Default
-            status: 'approved' // Auto-approve
-        });
-
-        res.status(201).json({ message: 'Doctor added successfully', doctor });
+res.status(201).json({ message: 'Doctor added successfully', doctor });
     } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    res.status(500).json({ message: error.message });
+}
 };
 
 module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital };

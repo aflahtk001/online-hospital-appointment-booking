@@ -337,6 +337,35 @@ function HospitalDashboard() {
                                 <input type="number" name="feesPerConsultation" placeholder="150" value={formData.feesPerConsultation} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="0" />
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Shift Start</label>
+                                    <input
+                                        type="time"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        value={formData.timings ? formData.timings.split(' - ')[0] : ''}
+                                        onChange={(e) => {
+                                            const end = formData.timings ? formData.timings.split(' - ')[1] : '';
+                                            setFormData({ ...formData, timings: `${e.target.value} - ${end || ''}` });
+                                        }}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Shift End</label>
+                                    <input
+                                        type="time"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        value={formData.timings ? formData.timings.split(' - ')[1] : ''}
+                                        onChange={(e) => {
+                                            const start = formData.timings ? formData.timings.split(' - ')[0] : '';
+                                            setFormData({ ...formData, timings: `${start || ''} - ${e.target.value}` });
+                                        }}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-3 mt-8">
                                 <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-apple-subtext hover:bg-gray-100 rounded-full font-medium transition-colors">Cancel</button>
                                 <button type="submit" className="px-8 py-3 bg-apple-blue text-white rounded-full hover:bg-blue-600 font-medium shadow-md transition-all hover:shadow-lg">Create Profile</button>
