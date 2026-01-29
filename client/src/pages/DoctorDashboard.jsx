@@ -32,6 +32,25 @@ function DoctorDashboard() {
         timings: ''
     });
 
+    // Medical History State
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [patientRecords, setPatientRecords] = useState([]);
+
+    const handleViewHistory = async () => {
+        if (!currentPatient) return;
+        const patId = currentPatient.patient?._id || currentPatient.patient;
+
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/records/patient/${patId}`, config);
+            setPatientRecords(res.data);
+            setShowHistoryModal(true);
+        } catch (error) {
+            console.error(error);
+            alert('Failed to fetch medical records');
+        }
+    };
+
     const onLogout = () => {
         dispatch(logout());
         dispatch(reset());
@@ -323,7 +342,10 @@ function DoctorDashboard() {
                                         >
                                             Write Prescription
                                         </button>
-                                        <button className="bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all">
+                                        <button
+                                            onClick={handleViewHistory}
+                                            className="bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all"
+                                        >
                                             View History
                                         </button>
                                     </div>
@@ -399,6 +421,55 @@ function DoctorDashboard() {
                                     <button type="submit" className="px-8 py-3 bg-apple-blue text-white rounded-full hover:bg-blue-600 font-medium shadow-md transition-all hover:shadow-lg">Send Prescription</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Medical History Modal */}
+                {showHistoryModal && (
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50 p-4">
+                        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                            <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                                <div>
+                                    <h2 className="text-2xl font-semibold text-apple-text">Medical History</h2>
+                                    <p className="text-apple-subtext">Patient: {currentPatient?.patient?.user?.name}</p>
+                                </div>
+                                <button onClick={() => setShowHistoryModal(false)} className="bg-gray-100 p-2 rounded-full text-gray-400 hover:text-apple-text transition-colors">✕</button>
+                            </div>
+
+                            {patientRecords.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {patientRecords.map((rec) => (
+                                        <div key={rec._id} className="p-5 border border-gray-100 rounded-2xl hover:bg-apple-gray/50 transition-colors flex justify-between items-center group">
+                                            <div className="flex items-center gap-4 overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-xl flex-shrink-0">
+                                                    {rec.recordType === 'X-Ray' ? '🦴' : rec.recordType === 'Report' ? '📄' : '📁'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-semibold text-apple-text truncate">{rec.title}</h4>
+                                                    <div className="flex items-center gap-2 text-xs text-apple-subtext">
+                                                        <span className="bg-gray-100 px-2 py-0.5 rounded">{rec.recordType}</span>
+                                                        <span>• {new Date(rec.date).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={`${import.meta.env.VITE_API_URL}${rec.fileUrl}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-white border border-gray-200 text-apple-blue text-sm font-medium rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-all shadow-sm"
+                                            >
+                                                View
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <p className="text-4xl mb-2">📂</p>
+                                    <p className="text-apple-subtext">No medical records found for this patient.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
