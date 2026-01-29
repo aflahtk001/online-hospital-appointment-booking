@@ -12,6 +12,7 @@ function PatientDashboard() {
     const [appointments, setAppointments] = useState([]);
     const [patientProfile, setPatientProfile] = useState(null);
     const [prescriptions, setPrescriptions] = useState([]);
+    const [selectedPrescription, setSelectedPrescription] = useState(null);
 
     // Medical Records State
     const [medicalRecords, setMedicalRecords] = useState([]);
@@ -232,36 +233,27 @@ function PatientDashboard() {
                         </div>
                     </div>
 
-                    {/* Prescriptions (Middle Col) */}
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
                         <h2 className="text-xl font-bold mb-6 text-apple-text sticky top-0 bg-white pb-2 border-b border-gray-50">My Prescriptions</h2>
                         {prescriptions.length > 0 ? (
                             <div className="space-y-4">
                                 {prescriptions.map((pres) => (
-                                    <div key={pres._id} className="border border-gray-100 p-5 rounded-2xl bg-apple-gray/30 hover:bg-apple-gray transition-colors">
-                                        <div className="flex justify-between items-start border-b border-gray-200 pb-3 mb-3">
+                                    <div key={pres._id} className="border border-gray-100 p-5 rounded-2xl bg-apple-gray/30 hover:bg-apple-gray transition-colors group">
+                                        <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <p className="font-bold text-lg text-apple-text">{pres.diagnosis}</p>
                                                 <p className="text-sm text-apple-subtext">Dr. {pres.doctor?.user?.name || 'Unknown'}</p>
                                             </div>
                                             <span className="text-xs text-apple-subtext bg-white px-2 py-1 rounded-full border border-gray-200">{new Date(pres.date).toLocaleDateString()}</span>
                                         </div>
-                                        <div>
-                                            <ul className="space-y-1">
-                                                {pres.medicines.map((med, idx) => (
-                                                    <li key={idx} className="text-sm text-apple-text flex flex-col gap-1 mb-2 border-l-2 border-blue-200 pl-3">
-                                                        <div className="flex justify-between">
-                                                            <span className="font-medium">{med.name}</span>
-                                                            <span className="font-bold text-apple-blue">{med.dosage}</span>
-                                                        </div>
-                                                        <div className="text-xs text-apple-subtext flex gap-3">
-                                                            <span>🔁 {med.frequency}</span>
-                                                            <span>📅 {med.duration}</span>
-                                                        </div>
-                                                        {med.instructions && <span className="text-xs text-gray-500 italic">"{med.instructions}"</span>}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        <div className="flex justify-between items-center mt-3">
+                                            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{pres.medicines.length} Medicines</span>
+                                            <button
+                                                onClick={() => setSelectedPrescription(pres)}
+                                                className="text-apple-blue text-sm font-semibold hover:underline"
+                                            >
+                                                View Details
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -376,6 +368,61 @@ function PatientDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Prescription Details Modal */}
+            {selectedPrescription && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+                        <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-bold text-apple-text">Prescription Details</h2>
+                                <p className="text-apple-subtext">Dr. {selectedPrescription.doctor?.user?.name}</p>
+                            </div>
+                            <button onClick={() => setSelectedPrescription(null)} className="text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-2 transition-colors">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div>
+                                <p className="text-xs text-apple-subtext uppercase tracking-wide font-semibold mb-1">Diagnosis</p>
+                                <p className="text-lg font-medium text-apple-text">{selectedPrescription.diagnosis}</p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs text-apple-subtext uppercase tracking-wide font-semibold mb-3">Medicines</p>
+                                <div className="space-y-3">
+                                    {selectedPrescription.medicines.map((med, idx) => (
+                                        <div key={idx} className="bg-apple-gray/50 p-4 rounded-2xl border border-gray-100">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-apple-text">{med.name}</span>
+                                                <span className="text-sm font-semibold text-apple-blue bg-blue-50 px-2 py-0.5 rounded-md">{med.dosage}</span>
+                                            </div>
+                                            <div className="flex gap-4 text-xs text-gray-500 mb-2">
+                                                <span className="flex items-center gap-1">🕒 {med.frequency}</span>
+                                                <span className="flex items-center gap-1">📅 {med.duration}</span>
+                                            </div>
+                                            {med.instructions && (
+                                                <p className="text-sm text-gray-600 italic border-l-2 border-gray-300 pl-2">"{med.instructions}"</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {selectedPrescription.notes && (
+                                <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-100 text-yellow-800 text-sm">
+                                    <p className="font-semibold mb-1">Doctor's Notes:</p>
+                                    <p>{selectedPrescription.notes}</p>
+                                </div>
+                            )}
+
+                            <div className="text-center pt-2">
+                                <p className="text-xs text-gray-400">Prescribed on {new Date(selectedPrescription.date).toLocaleDateString()} at {new Date(selectedPrescription.date).toLocaleTimeString()}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
