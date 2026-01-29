@@ -21,6 +21,16 @@ function HospitalDashboard() {
         feesPerConsultation: ''
     });
 
+    const [showRegisterForm, setShowRegisterForm] = useState(false);
+    const [registerFormData, setRegisterFormData] = useState({
+        name: '',
+        contactNumber: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: ''
+    });
+
     const onLogout = () => {
         dispatch(logout());
         dispatch(reset());
@@ -45,6 +55,7 @@ function HospitalDashboard() {
             // 1. Fetch Hospital Details
             const hospRes = await axios.get(`${API}/api/hospitals/me`, config);
             setHospital(hospRes.data);
+            setShowRegisterForm(false);
 
             // 2. Fetch Doctors
             const docsRes = await axios.get(`${API}/api/hospitals/doctors`, config);
@@ -52,6 +63,37 @@ function HospitalDashboard() {
 
         } catch (error) {
             console.error("Failed to fetch hospital data:", error);
+            if (error.response && error.response.status === 404) {
+                setShowRegisterForm(true);
+            }
+        }
+    };
+
+    const handleRegisterHospital = async (e) => {
+        e.preventDefault();
+        try {
+            const config = {
+                headers: { Authorization: `Bearer ${user.token}` },
+            };
+            const payload = {
+                name: registerFormData.name,
+                contactNumber: registerFormData.contactNumber,
+                address: {
+                    street: registerFormData.street,
+                    city: registerFormData.city,
+                    state: registerFormData.state,
+                    zip: registerFormData.zip
+                },
+                departments: [{ name: 'General' }] // Default department
+            };
+
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/hospitals`, payload, config);
+            alert('Hospital Registered Successfully!');
+            setShowRegisterForm(false);
+            fetchHospitalData();
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Failed to register hospital');
         }
     };
 
@@ -75,6 +117,88 @@ function HospitalDashboard() {
     const onChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+    if (showRegisterForm) {
+        return (
+            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-6">
+                <div className="bg-white p-10 rounded-3xl shadow-xl max-w-2xl w-full">
+                    <h1 className="text-3xl font-semibold text-apple-text mb-4">Register Your Hospital</h1>
+                    <p className="text-apple-subtext mb-8">Please provide your facility details to get started.</p>
+
+                    <form onSubmit={handleRegisterHospital} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Hospital Name</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                placeholder="e.g. City General Hospital"
+                                value={registerFormData.name}
+                                onChange={(e) => setRegisterFormData({ ...registerFormData, name: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Contact Number</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                placeholder="e.g. +1 555-0123"
+                                value={registerFormData.contactNumber}
+                                onChange={(e) => setRegisterFormData({ ...registerFormData, contactNumber: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Street</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="123 Health St"
+                                    value={registerFormData.street}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, street: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">City</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="New York"
+                                    value={registerFormData.city}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, city: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">State</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="NY"
+                                    value={registerFormData.state}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, state: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">ZIP Code</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="10001"
+                                    value={registerFormData.zip}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, zip: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <button type="submit" className="w-full bg-apple-blue text-white py-3.5 rounded-full font-medium hover:bg-blue-600 shadow-lg transition-all">
+                            Complete Registration
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-apple-gray p-8 relative">
