@@ -22,10 +22,37 @@ function DoctorDashboard() {
         notes: ''
     });
 
+    const [isProfileMissing, setIsProfileMissing] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        specialization: '',
+        experience: '',
+        qualifications: '',
+        feesPerConsultation: '',
+        bio: '',
+        timings: ''
+    });
+
     const onLogout = () => {
         dispatch(logout());
         dispatch(reset());
         navigate('/');
+    };
+
+    const fetchAppointments = async () => {
+        try {
+            const config = {
+                headers: { Authorization: `Bearer ${user.token}` }
+            };
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/doctor`, config);
+            setAppointments(res.data);
+            setIsProfileMissing(false);
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                setIsProfileMissing(true);
+            } else {
+                console.error(error);
+            }
+        }
     };
 
     useEffect(() => {
@@ -38,23 +65,33 @@ function DoctorDashboard() {
         const newSocket = io(import.meta.env.VITE_API_URL);
         setSocket(newSocket);
 
-        // Fetch Appointments
-        const fetchAppointments = async () => {
-            try {
-                const config = {
-                    headers: { Authorization: `Bearer ${user.token}` }
-                };
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/doctor`, config);
-                setAppointments(res.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
         fetchAppointments();
 
         return () => newSocket.close();
 
     }, [user, navigate]);
+
+    const handleCreateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            const config = {
+                headers: { Authorization: `Bearer ${user.token}` }
+            };
+            // Qualifications needs to be an array
+            const payload = {
+                ...profileForm,
+                qualifications: profileForm.qualifications.split(',').map(q => q.trim())
+            };
+
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/doctors/profile`, payload, config);
+            alert('Profile Created Successfully!');
+            setIsProfileMissing(false);
+            fetchAppointments();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to create profile');
+        }
+    };
 
     const callNextPatient = () => {
         const next = appointments.find(app => app.token.status === 'waiting');
@@ -118,6 +155,92 @@ function DoctorDashboard() {
             alert('Failed to send prescription: ' + (error.response?.data?.message || error.message));
         }
     };
+
+    if (isProfileMissing) {
+        return (
+            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-6">
+                <div className="bg-white p-10 rounded-3xl shadow-xl max-w-2xl w-full">
+                    <h1 className="text-3xl font-semibold text-apple-text mb-4">Complete Your Profile</h1>
+                    <p className="text-apple-subtext mb-8">Please provide your professional details to start accepting appointments.</p>
+
+                    <form onSubmit={handleCreateProfile} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Specialization</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="e.g. Cardiologist"
+                                    value={profileForm.specialization}
+                                    onChange={(e) => setProfileForm({ ...profileForm, specialization: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Experience (Years)</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="e.g. 5"
+                                    value={profileForm.experience}
+                                    onChange={(e) => setProfileForm({ ...profileForm, experience: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Consultation Fee ($)</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="e.g. 100"
+                                    value={profileForm.feesPerConsultation}
+                                    onChange={(e) => setProfileForm({ ...profileForm, feesPerConsultation: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Timings</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="e.g. 9:00 AM - 5:00 PM"
+                                    value={profileForm.timings}
+                                    onChange={(e) => setProfileForm({ ...profileForm, timings: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Qualifications (comma separated)</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                placeholder="MBBS, MD"
+                                value={profileForm.qualifications}
+                                onChange={(e) => setProfileForm({ ...profileForm, qualifications: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Bio</label>
+                            <textarea
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                rows="3"
+                                placeholder="Brief description about yourself..."
+                                value={profileForm.bio}
+                                onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" className="w-full bg-apple-blue text-white py-3.5 rounded-full font-medium hover:bg-blue-600 shadow-lg transition-all">
+                            Create Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-apple-gray p-8 relative">
