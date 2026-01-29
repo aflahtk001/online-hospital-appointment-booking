@@ -43,7 +43,7 @@ function AdminDashboard() {
 
             // 3. Fetch System Stats
             const statsRes = await axios.get(`${API}/api/admin/stats`, config);
-            setSystemStats(statsRes.data);
+            setStats(statsRes.data);
 
         } catch (error) {
             console.error("Failed to fetch pending data:", error);
@@ -116,8 +116,8 @@ function AdminDashboard() {
                                 <li key={doc._id} className="border-b py-2 flex justify-between items-center">
                                     <span>{doc.user?.name || 'Unknown'} ({doc.specialization})</span>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleDoctorAction(doc._id, 'approve')} className="text-green-500 text-sm hover:underline">Approve</button>
-                                        <button onClick={() => handleDoctorAction(doc._id, 'reject')} className="text-red-500 text-sm hover:underline">Reject</button>
+                                        <button onClick={() => handleApproveDoctor(doc._id)} className="text-green-500 text-sm hover:underline">Approve</button>
+                                        <button onClick={() => handleRejectDoctor(doc._id)} className="text-red-500 text-sm hover:underline">Reject</button>
                                     </div>
                                 </li>
                             ))}
@@ -131,8 +131,8 @@ function AdminDashboard() {
                                 <li key={hosp._id} className="border-b py-2 flex justify-between items-center">
                                     <span>{hosp.name}</span>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleHospitalAction(hosp._id, 'approve')} className="text-green-500 text-sm hover:underline">Approve</button>
-                                        <button onClick={() => handleHospitalAction(hosp._id, 'reject')} className="text-red-500 text-sm hover:underline">Reject</button>
+                                        <button onClick={() => handleApproveHospital(hosp._id)} className="text-green-500 text-sm hover:underline">Approve</button>
+                                        <button onClick={() => handleRejectHospital(hosp._id)} className="text-red-500 text-sm hover:underline">Reject</button>
                                     </div>
                                 </li>
                             ))}
