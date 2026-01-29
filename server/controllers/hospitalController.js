@@ -129,14 +129,89 @@ const getHospitalDoctors = async (req, res) => {
 // @desc    Add Doctor to Hospital (Hospital Admin)
 // @route   POST /api/hospitals/doctors
 // @access  Private (Hospital Admin)
-timings: timings || "Mon-Fri: 09:00 - 17:00", // Use provided or Default
-    status: 'approved' // Auto-approve
+const addDoctorToHospital = async (req, res) => {
+    const { name, email, password, specialization, experience, feesPerConsultation, timings } = req.body;
+
+    try {
+        const hospital = await Hospital.findOne({ admins: req.user.id });
+        if (!hospital) {
+            return res.status(404).json({ message: 'Hospital not found' });
+        }
+
+        // 1. Check if user exists
+        let user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // 2. Create User (Doctor)
+        user = await User.create({
+            name,
+            email,
+            password,
+            role: 'doctor',
+            hospitalId: hospital._id
         });
 
-res.status(201).json({ message: 'Doctor added successfully', doctor });
+        // 3. Create Doctor Profile
+        const Doctor = require('../models/Doctor');
+        const doctor = await Doctor.create({
+            user: user._id,
+            hospital: hospital._id,
+            specialization,
+            experience: experience || 0,
+            feesPerConsultation: feesPerConsultation || 0,
+            qualifications: ['MBBS'], // Default
+            timings: timings || "Mon-Fri: 09:00 - 17:00", // Use provided or Default
+            status: 'approved' // Auto-approve
+        });
+
+        res.status(201).json({ message: 'Doctor added successfully', doctor });
     } catch (error) {
-    res.status(500).json({ message: error.message });
-}
+        res.status(500).json({ message: error.message });
+    }
 };
 
-module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital };
+// @desc    Get Hospital Stats (Analytics)
+// @route   GET /api/hospitals/stats
+// @access  Private (Hospital Admin)
+const getHospitalStats = async (req, res) => {
+    try {
+        const hospital = await Hospital.findOne({ admins: req.user.id });
+        if (!hospital) return res.status(404).json({ message: 'Hospital not found' });
+
+        const Doctor = require('../models/Doctor');
+        const Appointment = require('../models/Appointment');
+
+        // 1. Total Doctors
+        const totalDoctors = await Doctor.countDocuments({ hospital: hospital._id });
+
+        // 2. Patients Today
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const appointmentsToday = await Appointment.find({
+            hospital: hospital._id,
+            appointmentDate: { $gte: startOfDay, $lte: endOfDay }
+        }).populate('doctor', 'feesPerConsultation');
+
+        const patientsTodayCount = appointmentsToday.length;
+
+        // 3. Revenue (Sum of fees of today's appointments)
+        const revenue = appointmentsToday.reduce((acc, curr) => {
+            return acc + (curr.doctor?.feesPerConsultation || 0);
+        }, 0);
+
+        res.json({
+            totalDoctors,
+            patientsToday: patientsTodayCount,
+            revenue
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats };

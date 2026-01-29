@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital } = require('../controllers/hospitalController');
+const { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats } = require('../controllers/hospitalController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -22,5 +22,8 @@ router.route('/me')
 router.route('/doctors')
     .get(protect, authorize('hospital_admin'), getHospitalDoctors)
     .post(protect, authorize('hospital_admin'), addDoctorToHospital);
+
+router.route('/stats')
+    .get(protect, authorize('hospital_admin'), getHospitalStats);
 
 module.exports = router;

@@ -32,6 +32,21 @@ function HospitalDashboard() {
         zip: ''
     });
 
+    const [stats, setStats] = useState(null);
+
+    const handleOpenReports = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/hospitals/stats`, config);
+            setStats(res.data);
+            setShowReportsModal(true);
+        } catch (error) {
+            console.error(error);
+            // Open anyway with partial data
+            setShowReportsModal(true);
+        }
+    };
+
     const onLogout = () => {
         dispatch(logout());
         dispatch(reset());
@@ -290,7 +305,7 @@ function HospitalDashboard() {
                                     <span className="block text-2xl mb-2">🏥</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">ED/OPD Queue</span>
                                 </button>
-                                <button onClick={() => setShowReportsModal(true)} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                <button onClick={handleOpenReports} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
                                     <span className="block text-2xl mb-2">📊</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">Reports</span>
                                 </button>
@@ -388,21 +403,21 @@ function HospitalDashboard() {
                             <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center">
                                 <div>
                                     <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Total Doctors</p>
-                                    <p className="text-3xl font-bold text-apple-blue">{doctors.length}</p>
+                                    <p className="text-3xl font-bold text-apple-blue">{stats ? stats.totalDoctors : '...'}</p>
                                 </div>
                                 <span className="text-3xl">👨‍⚕️</span>
                             </div>
                             <div className="p-5 bg-green-50 rounded-2xl border border-green-100 flex justify-between items-center">
                                 <div>
                                     <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Patients Today</p>
-                                    <p className="text-3xl font-bold text-green-700">12</p> {/* Placeholder for now */}
+                                    <p className="text-3xl font-bold text-green-700">{stats ? stats.patientsToday : '...'}</p>
                                 </div>
                                 <span className="text-3xl">🏥</span>
                             </div>
                             <div className="p-5 bg-purple-50 rounded-2xl border border-purple-100 flex justify-between items-center">
                                 <div>
                                     <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Revenue (Est.)</p>
-                                    <p className="text-3xl font-bold text-purple-700">$1,200</p> {/* Placeholder for now */}
+                                    <p className="text-3xl font-bold text-purple-700">${stats ? stats.revenue : '...'}</p>
                                 </div>
                                 <span className="text-3xl">💰</span>
                             </div>
