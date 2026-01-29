@@ -163,7 +163,7 @@ const addDoctorToHospital = async (req, res) => {
             experience: experience || 0,
             feesPerConsultation: feesPerConsultation || 0,
             qualifications: ['MBBS'], // Default or add to form
-            timings: { "Mon-Fri": "09:00 - 17:00" }, // Default
+            timings: "Mon-Fri: 09:00 - 17:00", // Default
             status: 'approved' // Auto-approve
         });
 
