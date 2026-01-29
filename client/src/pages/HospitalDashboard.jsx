@@ -12,6 +12,7 @@ function HospitalDashboard() {
     const [hospital, setHospital] = useState(null);
     const [doctors, setDoctors] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [showReportsModal, setShowReportsModal] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
