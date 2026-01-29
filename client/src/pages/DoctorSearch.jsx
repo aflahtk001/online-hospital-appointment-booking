@@ -82,7 +82,7 @@ function DoctorSearch() {
             // In real app, doctor.hospital would be populated
             const hospitalId = selectedDoctor.hospital || '65b4c1e8f23a1c2d3e4f5a6b';
 
-            await axios.post('http://localhost:5000/api/appointments', {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/appointments`, {
                 doctorId: selectedDoctor._id,
                 hospitalId: hospitalId, // Fallback need actual ID from DB later
                 appointmentDate,
