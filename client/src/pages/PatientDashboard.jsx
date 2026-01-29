@@ -249,9 +249,16 @@ function PatientDashboard() {
                                         <div>
                                             <ul className="space-y-1">
                                                 {pres.medicines.map((med, idx) => (
-                                                    <li key={idx} className="text-sm text-apple-text flex items-center gap-2">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                                                        <span className="font-medium">{med.name}</span> <span className="text-apple-subtext">- {med.dosage}</span>
+                                                    <li key={idx} className="text-sm text-apple-text flex flex-col gap-1 mb-2 border-l-2 border-blue-200 pl-3">
+                                                        <div className="flex justify-between">
+                                                            <span className="font-medium">{med.name}</span>
+                                                            <span className="font-bold text-apple-blue">{med.dosage}</span>
+                                                        </div>
+                                                        <div className="text-xs text-apple-subtext flex gap-3">
+                                                            <span>🔁 {med.frequency}</span>
+                                                            <span>📅 {med.duration}</span>
+                                                        </div>
+                                                        {med.instructions && <span className="text-xs text-gray-500 italic">"{med.instructions}"</span>}
                                                     </li>
                                                 ))}
                                             </ul>
