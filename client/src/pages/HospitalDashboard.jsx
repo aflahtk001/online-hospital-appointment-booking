@@ -77,103 +77,145 @@ function HospitalDashboard() {
     };
 
     return (
-        <div className="p-8 relative">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold">Hospital Admin Panel</h1>
-                <div className="flex items-center gap-4">
-                    <span>Admin: {user && user.name}</span>
+        <div className="min-h-screen bg-apple-gray p-8 relative">
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Hospital Portal</h1>
+                        <p className="text-apple-subtext text-lg">Admin Console for {user && user.name}</p>
+                    </div>
                     <button
                         onClick={onLogout}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
-                        Logout
+                        Sign Out
                     </button>
                 </div>
-            </div>
 
-            {/* Hospital Info Banner */}
-            {hospital && (
-                <div className="bg-blue-600 text-white p-6 rounded shadow mb-8">
-                    <h2 className="text-3xl font-bold">{hospital.name}</h2>
-                    <p>{hospital.address?.city}, {hospital.address?.state}</p>
-                    <p className="text-sm mt-2">Departments: {hospital.departments.map(d => d.name).join(', ')}</p>
-                </div>
-            )}
+                {/* Hospital Info Banner */}
+                {hospital && (
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h2 className="text-4xl font-bold tracking-tight mb-2">{hospital.name}</h2>
+                            <p className="text-blue-100 text-lg flex items-center gap-2">
+                                {hospital.address?.city}, {hospital.address?.state}
+                            </p>
+                            <div className="mt-6 flex flex-wrap gap-2">
+                                {hospital.departments.map((d, i) => (
+                                    <span key={i} className="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium border border-white/10">
+                                        {d.name}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                        {/* Decorative circles */}
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+                    </div>
+                )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded shadow">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold">Manage Doctors</h2>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                        >
-                            Add New Doctor
-                        </button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Doctors List */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 min-h-[500px]">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-semibold text-apple-text">Medical Staff</h2>
+                            <button
+                                onClick={() => setShowModal(true)}
+                                className="bg-apple-blue text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
+                            >
+                                + Add Doctor
+                            </button>
+                        </div>
+
+                        {doctors.length > 0 ? (
+                            <ul className="space-y-4">
+                                {doctors.map(doc => (
+                                    <li key={doc._id} className="flex justify-between items-center p-4 bg-apple-gray/50 rounded-2xl hover:bg-apple-gray transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                                {doc.user?.name?.charAt(0) || 'D'}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-apple-text">{doc.user?.name || 'Unknown'}</p>
+                                                <p className="text-apple-subtext text-sm">{doc.specialization}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {doc.status}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-64 text-center">
+                                <p className="text-apple-subtext text-lg">No doctors assigned yet.</p>
+                                <button onClick={() => setShowModal(true)} className="text-apple-blue mt-2 font-medium hover:underline">Add your first doctor</button>
+                            </div>
+                        )}
                     </div>
 
-                    {doctors.length > 0 ? (
-                        <ul className="space-y-3">
-                            {doctors.map(doc => (
-                                <li key={doc._id} className="border p-3 rounded flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold">{doc.user?.name || 'Unknown'}</p>
-                                        <p className="text-sm text-gray-500">{doc.specialization}</p>
-                                    </div>
-                                    <span className={`text-xs px-2 py-1 rounded ${doc.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                        {doc.status}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-gray-500 italic">No doctors assigned yet.</p>
-                    )}
-                </div>
-
-                <div className="bg-white p-6 rounded shadow">
-                    <h2 className="text-xl font-bold mb-4">Reception Queue</h2>
-                    <p className="text-gray-600 mb-4">Manage the general OPD queue for the hospital.</p>
-                    <button className="text-blue-500 hover:underline">Open Queue Panel</button>
+                    {/* Queue / Stats Panel */}
+                    <div className="space-y-6">
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <h2 className="text-2xl font-semibold mb-4 text-apple-text">Quick Actions</h2>
+                            <p className="text-apple-subtext mb-6">Manage hospital operations and view reports.</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                    <span className="block text-2xl mb-2">🏥</span>
+                                    <span className="font-semibold text-apple-text group-hover:text-apple-blue">ED/OPD Queue</span>
+                                </button>
+                                <button className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                    <span className="block text-2xl mb-2">📊</span>
+                                    <span className="font-semibold text-apple-text group-hover:text-apple-blue">Reports</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Add Doctor Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded shadow-lg w-96">
-                        <h2 className="text-xl font-bold mb-4">Add New Doctor</h2>
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg transform transition-all scale-100">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-apple-text">Add New Doctor</h2>
+                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                                ✕
+                            </button>
+                        </div>
                         <form onSubmit={handleAddDoctor} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                                <input type="text" name="name" placeholder="Dr. John Doe" value={formData.name} onChange={onChange} className="w-full border p-2 rounded mt-1" required />
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Full Name</label>
+                                <input type="text" name="name" placeholder="Dr. John Doe" value={formData.name} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                                <input type="email" name="email" placeholder="doctor@example.com" value={formData.email} onChange={onChange} className="w-full border p-2 rounded mt-1" required />
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Email Address</label>
+                                <input type="email" name="email" placeholder="doctor@example.com" value={formData.email} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Password</label>
-                                <input type="password" name="password" placeholder="********" value={formData.password} onChange={onChange} className="w-full border p-2 rounded mt-1" required />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Specialization</label>
-                                <input type="text" name="specialization" placeholder="e.g. Cardiology" value={formData.specialization} onChange={onChange} className="w-full border p-2 rounded mt-1" required />
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Password</label>
+                                <input type="password" name="password" placeholder="••••••••" value={formData.password} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Experience</label>
-                                    <input type="number" name="experience" placeholder="Years" value={formData.experience} onChange={onChange} className="w-full border p-2 rounded mt-1" required min="0" />
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Specialization</label>
+                                    <input type="text" name="specialization" placeholder="Cardiology" value={formData.specialization} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Fees ($)</label>
-                                    <input type="number" name="feesPerConsultation" placeholder="Amount" value={formData.feesPerConsultation} onChange={onChange} className="w-full border p-2 rounded mt-1" required min="0" />
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Experience (Yrs)</label>
+                                    <input type="number" name="experience" placeholder="10" value={formData.experience} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="0" />
                                 </div>
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Consultation Fees ($)</label>
+                                <input type="number" name="feesPerConsultation" placeholder="150" value={formData.feesPerConsultation} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="0" />
+                            </div>
 
-                            <div className="flex justify-end gap-2 mt-6">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold">Add Doctor</button>
+                            <div className="flex justify-end gap-3 mt-8">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 text-apple-subtext hover:bg-gray-100 rounded-full font-medium transition-colors">Cancel</button>
+                                <button type="submit" className="px-8 py-3 bg-apple-blue text-white rounded-full hover:bg-blue-600 font-medium shadow-md transition-all hover:shadow-lg">Create Profile</button>
                             </div>
                         </form>
                     </div>

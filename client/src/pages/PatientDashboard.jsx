@@ -164,159 +164,177 @@ function PatientDashboard() {
 
 
     return (
-        <div className="p-8 relative">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold">Patient Dashboard</h1>
-                <div className="flex items-center gap-4">
-                    <span>Welcome, {user && user.name}</span>
+        <div className="min-h-screen bg-apple-gray p-8 relative">
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Patient Portal</h1>
+                        <p className="text-apple-subtext text-lg">Welcome back, {user && user.name}</p>
+                    </div>
                     <button
                         onClick={onLogout}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
-                        Logout
+                        Sign Out
                     </button>
                 </div>
-            </div>
 
-            {!patientProfile && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-                    <p className="font-bold">Complete your Profile</p>
-                    <p>You need to complete your medical profile before booking appointments.</p>
-                    <button
-                        onClick={() => setShowProfileModal(true)}
-                        className="mt-2 bg-yellow-600 text-white px-4 py-1 rounded"
-                    >
-                        Create Profile
-                    </button>
-                </div>
-            )}
+                {!patientProfile && (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-3xl flex justify-between items-center shadow-sm">
+                        <div>
+                            <p className="font-bold text-lg mb-1">Complete your Profile</p>
+                            <p className="text-yellow-700">You need to complete your medical profile before booking appointments.</p>
+                        </div>
+                        <button
+                            onClick={() => setShowProfileModal(true)}
+                            className="bg-yellow-500 text-white px-6 py-2 rounded-full font-medium hover:bg-yellow-600 transition-colors shadow-sm"
+                        >
+                            Create Profile
+                        </button>
+                    </div>
+                )}
 
-            {/* Live Queue Alert */}
-            {alertMessage && (
-                <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 animate-pulse" role="alert">
-                    <p className="font-bold text-lg">{alertMessage}</p>
-                </div>
-            )}
+                {/* Live Queue Alert */}
+                {alertMessage && (
+                    <div className="bg-green-50 border border-green-200 text-green-800 p-6 rounded-3xl animate-pulse shadow-sm flex items-center gap-4">
+                        <span className="text-3xl">📢</span>
+                        <p className="font-bold text-lg">{alertMessage}</p>
+                    </div>
+                )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Actions & Queue (Left Col) */}
+                    <div className="space-y-6">
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center">
+                            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🩺</div>
+                            <h2 className="text-xl font-bold mb-2 text-apple-text">Need a checkup?</h2>
+                            <p className="text-apple-subtext mb-6 text-sm">Find specialists and book appointments instantly.</p>
+                            <Link to="/find-doctors" className="block w-full text-center bg-apple-blue text-white py-3 rounded-full hover:bg-blue-600 transition-colors font-medium shadow-md hover:shadow-lg">
+                                Find & Book Doctor
+                            </Link>
+                        </div>
 
-                {/* Actions & Queue */}
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded shadow">
-                        <h2 className="text-xl font-bold mb-4">Actions</h2>
-                        <Link to="/find-doctors" className="block w-full text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2">
-                            Find & Book Doctor
-                        </Link>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <h2 className="text-xl font-bold mb-4 text-apple-text">Live Queue Status</h2>
+                            {liveToken ? (
+                                <div className="text-center py-4">
+                                    <p className="text-apple-subtext text-sm uppercase tracking-wide font-medium">Your Token</p>
+                                    <h3 className="text-5xl font-bold text-apple-blue my-2">{liveToken.tokenNumber}</h3>
+                                    <p className="text-apple-text font-medium">Proceed to consult.</p>
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-gray-300 text-4xl mb-2">🎫</p>
+                                    <p className="text-apple-subtext">You are not in any active queue.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded shadow">
-                        <h2 className="text-xl font-bold mb-4">Live Queue</h2>
-                        {liveToken ? (
-                            <div className="text-center">
-                                <p className="text-gray-500">Current Token</p>
-                                <h3 className="text-4xl font-bold text-blue-600">{liveToken.tokenNumber}</h3>
-                                <p className="text-sm mt-2">Proceed to consult.</p>
+                    {/* Prescriptions (Middle Col) */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        <h2 className="text-xl font-bold mb-6 text-apple-text sticky top-0 bg-white pb-2 border-b border-gray-50">My Prescriptions</h2>
+                        {prescriptions.length > 0 ? (
+                            <div className="space-y-4">
+                                {prescriptions.map((pres) => (
+                                    <div key={pres._id} className="border border-gray-100 p-5 rounded-2xl bg-apple-gray/30 hover:bg-apple-gray transition-colors">
+                                        <div className="flex justify-between items-start border-b border-gray-200 pb-3 mb-3">
+                                            <div>
+                                                <p className="font-bold text-lg text-apple-text">{pres.diagnosis}</p>
+                                                <p className="text-sm text-apple-subtext">Dr. {pres.doctor?.user?.name || 'Unknown'}</p>
+                                            </div>
+                                            <span className="text-xs text-apple-subtext bg-white px-2 py-1 rounded-full border border-gray-200">{new Date(pres.date).toLocaleDateString()}</span>
+                                        </div>
+                                        <div>
+                                            <ul className="space-y-1">
+                                                {pres.medicines.map((med, idx) => (
+                                                    <li key={idx} className="text-sm text-apple-text flex items-center gap-2">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                                        <span className="font-medium">{med.name}</span> <span className="text-apple-subtext">- {med.dosage}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         ) : (
-                            <p>You are not currently in any active queue.</p>
+                            <p className="text-apple-subtext text-center py-8">No prescriptions found.</p>
+                        )}
+                    </div>
+
+                    {/* Medical Records (Right Col) */}
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        <h2 className="text-xl font-bold mb-6 text-apple-text sticky top-0 bg-white pb-2 border-b border-gray-50">Medical Records</h2>
+
+                        {/* Upload Form */}
+                        <form onSubmit={handleFileUpload} className="mb-8 p-5 border border-dashed border-gray-300 rounded-2xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                            <h3 className="font-semibold mb-3 text-sm text-apple-text">Upload New Record</h3>
+                            <div className="flex flex-col gap-3">
+                                <input type="text" placeholder="Record Title (e.g., Blood Test)" className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-white text-sm" value={recordTitle} onChange={(e) => setRecordTitle(e.target.value)} required />
+                                <div className="flex gap-2">
+                                    <select className="w-1/2 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-white text-sm" value={recordType} onChange={(e) => setRecordType(e.target.value)}>
+                                        <option value="Report">Report</option>
+                                        <option value="X-Ray">X-Ray</option>
+                                        <option value="Prescription">Prescription</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <label className="w-1/2 cursor-pointer bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-apple-subtext hover:text-apple-text hover:border-gray-300 transition-colors text-center truncate">
+                                        {uploadFile ? uploadFile.name : 'Choose File'}
+                                        <input type="file" onChange={(e) => setUploadFile(e.target.files[0])} accept="image/*,.pdf" className="hidden" required />
+                                    </label>
+                                </div>
+                                <button type="submit" className="w-full bg-apple-text text-white py-2 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm">Upload File</button>
+                            </div>
+                        </form>
+
+                        {medicalRecords.length > 0 ? (
+                            <div className="space-y-3">
+                                {medicalRecords.map((rec) => (
+                                    <div key={rec._id} className="flex justify-between items-center p-3 rounded-xl hover:bg-apple-gray transition-colors group border border-transparent hover:border-gray-200">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <span className="text-2xl flex-shrink-0">📄</span>
+                                            <div className="truncate">
+                                                <p className="font-medium text-apple-text truncate text-sm">{rec.title}</p>
+                                                <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase tracking-wide">{rec.recordType}</span>
+                                            </div>
+                                        </div>
+                                        <a href={`${import.meta.env.VITE_API_URL}${rec.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-apple-blue hover:bg-blue-50 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">View</a>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-apple-subtext text-center py-8">No records uploaded.</p>
                         )}
                     </div>
                 </div>
-
-                {/* Prescriptions */}
-                <div className="bg-white p-6 rounded shadow max-h-[80vh] overflow-y-auto">
-                    <h2 className="text-xl font-bold mb-4">My Prescriptions</h2>
-                    {prescriptions.length > 0 ? (
-                        <div className="space-y-4">
-                            {prescriptions.map((pres) => (
-                                <div key={pres._id} className="border p-4 rounded bg-gray-50">
-                                    <div className="flex justify-between items-start border-b pb-2 mb-2">
-                                        <div>
-                                            <p className="font-bold text-lg">{pres.diagnosis}</p>
-                                            <p className="text-sm text-gray-500">Dr. {pres.doctor?.user?.name || 'Unknown'}</p>
-                                        </div>
-                                        <span className="text-xs text-gray-400">{new Date(pres.date).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className="mb-2">
-                                        <ul className="list-disc pl-5 text-sm">
-                                            {pres.medicines.map((med, idx) => (
-                                                <li key={idx}>
-                                                    <span className="font-medium">{med.name}</span> - {med.dosage}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500">No prescriptions found.</p>
-                    )}
-                </div>
-
-                {/* Medical Records */}
-                <div className="bg-white p-6 rounded shadow max-h-[80vh] overflow-y-auto">
-                    <h2 className="text-xl font-bold mb-4">Medical Records</h2>
-
-                    {/* Upload Form */}
-                    <form onSubmit={handleFileUpload} className="mb-6 p-4 border rounded bg-gray-50 text-sm">
-                        <h3 className="font-semibold mb-2">Upload New Record</h3>
-                        <div className="flex flex-col gap-2">
-                            <input type="text" placeholder="Title (e.g., Blood Test)" className="border p-2 rounded" value={recordTitle} onChange={(e) => setRecordTitle(e.target.value)} required />
-                            <select className="border p-2 rounded" value={recordType} onChange={(e) => setRecordType(e.target.value)}>
-                                <option value="Lab Report">Lab Report</option>
-                                <option value="X-Ray">X-Ray</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            <input type="file" onChange={(e) => setUploadFile(e.target.files[0])} accept="image/*,.pdf" className="border p-1 rounded bg-white" required />
-                            <button type="submit" className="bg-blue-600 text-white py-1 rounded hover:bg-blue-700">Upload</button>
-                        </div>
-                    </form>
-
-                    {medicalRecords.length > 0 ? (
-                        <div className="space-y-3">
-                            {medicalRecords.map((rec) => (
-                                <div key={rec._id} className="flex justify-between items-center border p-3 rounded">
-                                    <div className="truncate pr-2">
-                                        <p className="font-semibold truncate">{rec.title}</p>
-                                        <span className="text-xs bg-gray-200 px-2 py-0.5 rounded text-gray-700">{rec.recordType}</span>
-                                    </div>
-                                    <a href={`${import.meta.env.VITE_API_URL}${rec.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm font-medium whitespace-nowrap">View</a>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500">No records uploaded.</p>
-                    )}
-                </div>
-
             </div>
 
             {/* Profile Creation Modal */}
             {showProfileModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-white p-8 rounded shadow-lg max-w-md w-full">
-                        <h2 className="text-xl font-bold mb-4">Create Patient Profile</h2>
-                        <form onSubmit={handleProfileSubmit} className="space-y-4">
-                            {/* ... Profile Form Inputs ... */}
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full">
+                        <h2 className="text-2xl font-bold mb-6 text-apple-text">Create Profile</h2>
+                        <form onSubmit={handleProfileSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Date of Birth</label>
+                                <label className="block text-apple-subtext text-sm font-bold mb-1 ml-1">Date of Birth</label>
                                 <input
                                     type="date"
                                     name="dateOfBirth"
                                     value={profileFormData.dateOfBirth}
                                     onChange={onProfileChange}
                                     required
-                                    className="w-full border p-2 rounded"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Gender</label>
+                                <label className="block text-apple-subtext text-sm font-bold mb-1 ml-1">Gender</label>
                                 <select
                                     name="gender"
                                     value={profileFormData.gender}
                                     onChange={onProfileChange}
-                                    className="w-full border p-2 rounded"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 >
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -324,7 +342,7 @@ function PatientDashboard() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Blood Group</label>
+                                <label className="block text-apple-subtext text-sm font-bold mb-1 ml-1">Blood Group</label>
                                 <input
                                     type="text"
                                     name="bloodGroup"
@@ -332,20 +350,20 @@ function PatientDashboard() {
                                     value={profileFormData.bloodGroup}
                                     onChange={onProfileChange}
                                     required
-                                    className="w-full border p-2 rounded"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 />
                             </div>
-                            <div className="flex justify-end gap-2 mt-6">
+                            <div className="flex justify-end gap-3 mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setShowProfileModal(false)}
-                                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+                                    className="bg-gray-100 text-apple-subtext px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                    className="bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg"
                                 >
                                     Save Profile
                                 </button>

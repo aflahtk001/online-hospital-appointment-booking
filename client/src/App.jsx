@@ -13,19 +13,17 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
-        <div className="container mx-auto">
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            {/* Protected Dashboards */}
-            <Route path="/patient-dashboard" element={<PatientDashboard />} />
-            <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-            <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/find-doctors" element={<DoctorSearch />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          {/* Protected Dashboards */}
+          <Route path="/patient-dashboard" element={<PatientDashboard />} />
+          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
+          <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/find-doctors" element={<DoctorSearch />} />
+        </Routes>
       </Router>
     </Provider>
   );
