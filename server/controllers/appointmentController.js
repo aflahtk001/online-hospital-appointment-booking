@@ -67,4 +67,39 @@ const getDoctorAppointments = async (req, res) => {
     }
 };
 
-module.exports = { bookAppointment, getDoctorAppointments };
+// @desc    Get Appointments for Hospital (Live Queue)
+// @route   GET /api/appointments/hospital
+// @access  Private (Hospital Admin)
+const getHospitalAppointments = async (req, res) => {
+    try {
+        const Hospital = require('../models/Hospital');
+        // Find hospital managed by this user
+        const hospital = await Hospital.findOne({ admins: req.user.id });
+        if (!hospital) {
+            return res.status(404).json({ message: 'Hospital not found' });
+        }
+
+        const appointments = await Appointment.find({
+            hospital: hospital._id,
+            appointmentDate: {
+                $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                $lte: new Date(new Date().setHours(23, 59, 59, 999))
+            } // Only today's appointments
+        })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name' }
+            })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name' }
+            })
+            .sort({ 'token.number': 1 }); // Sort by token number
+
+        res.json(appointments);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { bookAppointment, getDoctorAppointments, getHospitalAppointments };

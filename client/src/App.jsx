@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import HospitalDashboard from './pages/HospitalDashboard';
+import LiveQueue from './pages/LiveQueue';
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorSearch from './pages/DoctorSearch';
 import { Provider } from 'react-redux';
@@ -21,6 +22,7 @@ function App() {
           <Route path="/patient-dashboard" element={<PatientDashboard />} />
           <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
           <Route path="/hospital-dashboard" element={<HospitalDashboard />} />
+          <Route path="/hospital-queue" element={<LiveQueue />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/find-doctors" element={<DoctorSearch />} />
         </Routes>

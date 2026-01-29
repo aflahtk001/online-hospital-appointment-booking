@@ -285,11 +285,11 @@ function HospitalDashboard() {
                             <h2 className="text-2xl font-semibold mb-4 text-apple-text">Quick Actions</h2>
                             <p className="text-apple-subtext mb-6">Manage hospital operations and view reports.</p>
                             <div className="grid grid-cols-2 gap-4">
-                                <button className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                <button onClick={() => navigate('/hospital-queue')} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
                                     <span className="block text-2xl mb-2">🏥</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">ED/OPD Queue</span>
                                 </button>
-                                <button className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                <button onClick={() => setShowReportsModal(true)} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
                                     <span className="block text-2xl mb-2">📊</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">Reports</span>
                                 </button>
@@ -371,6 +371,44 @@ function HospitalDashboard() {
                                 <button type="submit" className="px-8 py-3 bg-apple-blue text-white rounded-full hover:bg-blue-600 font-medium shadow-md transition-all hover:shadow-lg">Create Profile</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Reports Modal */}
+            {showReportsModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+                    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg w-full">
+                        <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                            <h2 className="text-2xl font-bold text-apple-text">Hospital Analytics</h2>
+                            <button onClick={() => setShowReportsModal(false)} className="bg-gray-100 p-2 rounded-full text-gray-400 hover:text-apple-text transition-colors">✕</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                                <div>
+                                    <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Total Doctors</p>
+                                    <p className="text-3xl font-bold text-apple-blue">{doctors.length}</p>
+                                </div>
+                                <span className="text-3xl">👨‍⚕️</span>
+                            </div>
+                            <div className="p-5 bg-green-50 rounded-2xl border border-green-100 flex justify-between items-center">
+                                <div>
+                                    <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Patients Today</p>
+                                    <p className="text-3xl font-bold text-green-700">12</p> {/* Placeholder for now */}
+                                </div>
+                                <span className="text-3xl">🏥</span>
+                            </div>
+                            <div className="p-5 bg-purple-50 rounded-2xl border border-purple-100 flex justify-between items-center">
+                                <div>
+                                    <p className="text-apple-subtext text-sm font-semibold uppercase tracking-wide">Revenue (Est.)</p>
+                                    <p className="text-3xl font-bold text-purple-700">$1,200</p> {/* Placeholder for now */}
+                                </div>
+                                <span className="text-3xl">💰</span>
+                            </div>
+                        </div>
+                        <div className="mt-6 text-center">
+                            <p className="text-xs text-apple-subtext">Data updated in real-time.</p>
+                        </div>
                     </div>
                 </div>
             )}
