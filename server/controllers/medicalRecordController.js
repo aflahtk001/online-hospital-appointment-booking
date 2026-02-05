@@ -28,7 +28,8 @@ const uploadRecord = async (req, res) => {
             title,
             recordType,
             description,
-            fileUrl: `/${req.file.path.replace(/\\/g, "/")}` // Normalize path for URL
+            fileUrl: req.file.path, // Cloudinary URL
+            publicId: req.file.filename // Cloudinary Public ID
         });
 
         res.status(201).json(record);

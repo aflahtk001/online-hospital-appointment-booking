@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function HospitalDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -37,7 +39,7 @@ function HospitalDashboard() {
     const handleOpenReports = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/hospitals/stats`, config);
+            const res = await axios.get(`${API_URL}/api/hospitals/stats`, config);
             setStats(res.data);
             setShowReportsModal(true);
         } catch (error) {
@@ -66,7 +68,7 @@ function HospitalDashboard() {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` },
             };
-            const API = import.meta.env.VITE_API_URL;
+            const API = API_URL;
 
             // 1. Fetch Hospital Details
             const hospRes = await axios.get(`${API}/api/hospitals/me`, config);
@@ -103,7 +105,7 @@ function HospitalDashboard() {
                 departments: [{ name: 'General' }] // Default department
             };
 
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/hospitals`, payload, config);
+            await axios.post(`${API_URL}/api/hospitals`, payload, config);
             alert('Hospital Registered Successfully!');
             setShowRegisterForm(false);
             fetchHospitalData();
@@ -119,7 +121,7 @@ function HospitalDashboard() {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` },
             };
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/hospitals/doctors`, formData, config);
+            await axios.post(`${API_URL}/api/hospitals/doctors`, formData, config);
             alert('Doctor Added Successfully');
             setShowModal(false);
             setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '' });

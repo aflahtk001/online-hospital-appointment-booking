@@ -5,6 +5,8 @@ import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function DoctorDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -36,13 +38,35 @@ function DoctorDashboard() {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [patientRecords, setPatientRecords] = useState([]);
 
+    // Tabs & History State
+    const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [historyAppointments, setHistoryAppointments] = useState([]);
+    const [historyFilter, setHistoryFilter] = useState('All');
+
+    const fetchHistory = async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.get(`${API_URL}/api/appointments/doctor/history?date=${selectedDate}&status=${historyFilter}`, config);
+            setHistoryAppointments(res.data);
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'history') {
+            fetchHistory();
+        }
+    }, [activeTab, selectedDate, historyFilter]);
+
     const handleViewHistory = async () => {
         if (!currentPatient) return;
         const patId = currentPatient.patient?._id || currentPatient.patient;
 
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/records/patient/${patId}`, config);
+            const res = await axios.get(`${API_URL}/api/records/patient/${patId}`, config);
             setPatientRecords(res.data);
             setShowHistoryModal(true);
         } catch (error) {
@@ -62,7 +86,7 @@ function DoctorDashboard() {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` }
             };
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/doctor`, config);
+            const res = await axios.get(`${API_URL}/api/appointments/doctor`, config);
             setAppointments(res.data);
             setIsProfileMissing(false);
         } catch (error) {
@@ -81,7 +105,7 @@ function DoctorDashboard() {
         }
 
         // Connect to Socket
-        const newSocket = io(import.meta.env.VITE_API_URL);
+        const newSocket = io(API_URL);
         setSocket(newSocket);
 
         fetchAppointments();
@@ -102,7 +126,7 @@ function DoctorDashboard() {
                 qualifications: profileForm.qualifications.split(',').map(q => q.trim())
             };
 
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/doctors/profile`, payload, config);
+            await axios.post(`${API_URL}/api/doctors/profile`, payload, config);
             alert('Profile Created Successfully!');
             setIsProfileMissing(false);
             fetchAppointments();
@@ -120,11 +144,11 @@ function DoctorDashboard() {
             socket.emit('call_patient', {
                 doctorId: user._id,
                 patientId: next.patient._id,
-                tokenNumber: next.token.number,
+                tokenNumber: next.token.displayToken || next.token.number,
                 patientName: next.patient.user.name,
                 doctorName: user.name
             });
-            alert(`Calling Token ${next.token.number}: ${next.patient?.user?.name || 'Patient'}`);
+            alert(`Calling Token ${next.token.displayToken || next.token.number}: ${next.patient?.user?.name || 'Patient'}`);
         } else {
             alert("No patients waiting in queue");
         }
@@ -161,7 +185,7 @@ function DoctorDashboard() {
                 ...prescriptionData
             };
 
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/prescriptions`, payload, config);
+            await axios.post(`${API_URL}/api/prescriptions`, payload, config);
             alert('Prescription Sent Successfully');
             setShowPrescriptionModal(false);
             setPrescriptionData({
@@ -297,81 +321,199 @@ function DoctorDashboard() {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Today's Schedule (Left Column) */}
-                    <div className="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit">
-                        <h2 className="text-xl font-semibold mb-6 text-apple-text">Today's Schedule</h2>
-                        {appointments.length > 0 ? (
-                            <ul className="space-y-3">
-                                {appointments.map(app => (
-                                    <li key={app._id} className="flex justify-between items-center p-3 rounded-2xl hover:bg-apple-gray transition-colors border border-transparent hover:border-gray-200">
-                                        <div>
-                                            <span className="block font-semibold text-apple-text">Token {app.token.number}</span>
-                                            <span className="text-sm text-apple-subtext">{app.patient?.user?.name || 'Unknown'}</span>
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${app.token.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
-                                            {app.token.status}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-apple-subtext text-center py-10">No appointments scheduled for today.</p>
-                        )}
-                    </div>
+                {/* Tab Navigation */}
+                <div className="flex space-x-4 border-b border-gray-200">
+                    <button
+                        onClick={() => setActiveTab('queue')}
+                        className={`pb-4 px-2 font-medium transition-colors relative ${activeTab === 'queue' ? 'text-apple-blue' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Today's Queue
+                        {activeTab === 'queue' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-apple-blue rounded-t-full"></div>}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`pb-4 px-2 font-medium transition-colors relative ${activeTab === 'history' ? 'text-apple-blue' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        Appointments by Date
+                        {activeTab === 'history' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-apple-blue rounded-t-full"></div>}
+                    </button>
+                </div>
 
-                    {/* Queue Control (Right Column - Wider) */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Current Patient Interaction Card */}
-                        <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 text-center relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                            <div className="absolute bottom-0 left-0 p-32 bg-purple-50/50 rounded-full blur-3xl -ml-16 -mb-16"></div>
-
-                            {currentPatient ? (
-                                <div className="relative z-10 space-y-6">
-                                    <div>
-                                        <p className="text-apple-subtext font-medium uppercase tracking-widest text-sm mb-2">Now Serving</p>
-                                        <h3 className="text-6xl font-bold text-apple-blue tracking-tighter mb-2">Token {currentPatient.token.number}</h3>
-                                        <p className="text-2xl font-semibold text-apple-text">{currentPatient.patient?.user?.name}</p>
-                                    </div>
-
-                                    <div className="flex flex-wrap justify-center gap-4 mt-8">
-                                        <button
-                                            onClick={() => setShowPrescriptionModal(true)}
-                                            className="bg-apple-text text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                                        >
-                                            Write Prescription
-                                        </button>
-                                        <button
-                                            onClick={handleViewHistory}
-                                            className="bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all"
-                                        >
-                                            View History
-                                        </button>
-                                    </div>
-                                </div>
+                {activeTab === 'queue' ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Today's Schedule (Left Column) */}
+                        <div className="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit">
+                            <h2 className="text-xl font-semibold mb-6 text-apple-text">Today's Schedule</h2>
+                            {appointments.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {appointments.map(app => (
+                                        <li key={app._id} className="flex justify-between items-center p-3 rounded-2xl hover:bg-apple-gray transition-colors border border-transparent hover:border-gray-200">
+                                            <div>
+                                                <span className="block font-semibold text-apple-text">Token {app.token.displayToken || app.token.number}</span>
+                                                <span className="text-sm text-apple-subtext">{app.patient?.user?.name || 'Unknown'}</span>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide ${app.token.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                {app.token.status}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
                             ) : (
-                                <div className="relative z-10 py-10">
-                                    <p className="text-2xl text-gray-300 font-semibold mb-4">Queue is Idle</p>
-                                    <p className="text-apple-subtext">Click "Call Next" to start seeing patients.</p>
-                                </div>
+                                <p className="text-apple-subtext text-center py-10">No appointments scheduled for today.</p>
                             )}
                         </div>
 
-                        {/* Queue Actions */}
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex justify-center gap-4">
-                            <button
-                                onClick={callNextPatient}
-                                className="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                            >
-                                <span>📢</span> Call Next Patient
-                            </button>
-                            <button className="bg-orange-100 text-orange-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-200 transition-all flex items-center gap-2">
-                                <span>⏸</span> Pause Queue
-                            </button>
+                        {/* Queue Control (Right Column - Wider) */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Current Patient Interaction Card */}
+                            <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 text-center relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div className="absolute bottom-0 left-0 p-32 bg-purple-50/50 rounded-full blur-3xl -ml-16 -mb-16"></div>
+
+                                {currentPatient ? (
+                                    <div className="relative z-10 space-y-6">
+                                        <div>
+                                            <p className="text-apple-subtext font-medium uppercase tracking-widest text-sm mb-2">Now Serving</p>
+                                            <h3 className="text-6xl font-bold text-apple-blue tracking-tighter mb-2">Token {currentPatient.token.displayToken || currentPatient.token.number}</h3>
+                                            <p className="text-2xl font-semibold text-apple-text">{currentPatient.patient?.user?.name}</p>
+                                        </div>
+
+                                        <div className="flex flex-wrap justify-center gap-4 mt-8">
+                                            <button
+                                                onClick={() => setShowPrescriptionModal(true)}
+                                                className="bg-apple-text text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                            >
+                                                Write Prescription
+                                            </button>
+                                            <button
+                                                onClick={handleViewHistory}
+                                                className="bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all"
+                                            >
+                                                View History
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="relative z-10 py-10">
+                                        <p className="text-2xl text-gray-300 font-semibold mb-4">Queue is Idle</p>
+                                        <p className="text-apple-subtext">Click "Call Next" to start seeing patients.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Queue Actions */}
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex justify-center gap-4">
+                                <button
+                                    onClick={callNextPatient}
+                                    className="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                >
+                                    <span>📢</span> Call Next Patient
+                                </button>
+                                <button className="bg-orange-100 text-orange-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-200 transition-all flex items-center gap-2">
+                                    <span>⏸</span> Pause Queue
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-xl font-semibold text-apple-text">Appointments History</h2>
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 text-sm"
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                {['All', 'Completed', 'Waiting', 'Cancelled'].map(filter => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setHistoryFilter(filter)}
+                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${historyFilter === filter ? 'bg-apple-blue text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                    >
+                                        {filter}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="branches-table overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-gray-100 text-apple-subtext text-sm uppercase tracking-wide">
+                                        <th className="p-4 font-semibold">Token</th>
+                                        <th className="p-4 font-semibold">Time</th>
+                                        <th className="p-4 font-semibold">Patient</th>
+                                        <th className="p-4 font-semibold">Type</th>
+                                        <th className="p-4 font-semibold">Status</th>
+                                        <th className="p-4 font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {historyAppointments.length > 0 ? (
+                                        historyAppointments.map(app => (
+                                            <tr key={app._id} className="border-b border-gray-50 hover:bg-apple-gray/30 transition-colors">
+                                                <td className="p-4 font-bold text-apple-blue">{app.token?.displayToken || app.token?.number}</td>
+                                                <td className="p-4 text-gray-600">{new Date(app.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                                <td className="p-4">
+                                                    <div>
+                                                        <p className="font-semibold text-apple-text">{app.patient?.user?.name || 'Unknown'}</p>
+                                                        <p className="text-xs text-gray-400">{app.patient?.user?.email}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className={`px-2 py-1 rounded text-xs font-medium ${app.type === 'video' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                        {app.type === 'video' ? '📹 Video' : '🏥 Visit'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide
+                                                        ${app.token.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                                            app.token.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                                app.token.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-gray-100 text-gray-500'}`}>
+                                                        {app.token.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setCurrentPatient(app);
+                                                                handleViewHistory();
+                                                            }}
+                                                            className="p-2 text-gray-400 hover:text-apple-blue transition-colors rounded-full hover:bg-blue-50"
+                                                            title="View History"
+                                                        >
+                                                            📂
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setCurrentPatient(app);
+                                                                setShowPrescriptionModal(true);
+                                                            }}
+                                                            className="p-2 text-gray-400 hover:text-green-600 transition-colors rounded-full hover:bg-green-50"
+                                                            title="Prescribe"
+                                                        >
+                                                            💊
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="p-8 text-center text-gray-400">No appointments found for this date.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* Prescription Modal */}
                 {showPrescriptionModal && (
@@ -454,7 +596,7 @@ function DoctorDashboard() {
                                                 </div>
                                             </div>
                                             <a
-                                                href={`${import.meta.env.VITE_API_URL}${rec.fileUrl}`}
+                                                href={`${API_URL}${rec.fileUrl}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="px-4 py-2 bg-white border border-gray-200 text-apple-blue text-sm font-medium rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-all shadow-sm"

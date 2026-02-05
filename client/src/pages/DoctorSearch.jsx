@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,7 +32,7 @@ function DoctorSearch() {
             if (filters.minExperience) params.append('minExperience', filters.minExperience);
             if (filters.maxFees) params.append('maxFees', filters.maxFees);
 
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/doctors?${params.toString()}`);
+            const res = await axios.get(`${API_URL}/api/doctors?${params.toString()}`);
             setDoctors(res.data);
         } catch (error) {
             console.error('Error fetching doctors:', error);
@@ -82,7 +84,7 @@ function DoctorSearch() {
             // In real app, doctor.hospital would be populated
             const hospitalId = selectedDoctor.hospital || '65b4c1e8f23a1c2d3e4f5a6b';
 
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+            await axios.post(`${API_URL}/api/appointments`, {
                 doctorId: selectedDoctor._id,
                 hospitalId: hospitalId, // Fallback need actual ID from DB later
                 appointmentDate,

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function AdminDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -32,7 +34,7 @@ function AdminDashboard() {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` },
             };
-            const API = import.meta.env.VITE_API_URL;
+            const API = API_URL;
             // 1. Fetch Pending Doctors
             const docRes = await axios.get(`${API}/api/doctors/pending`, config);
             setPendingDoctors(docRes.data);
@@ -53,7 +55,7 @@ function AdminDashboard() {
     const handleApproveDoctor = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/doctors/${id}/approve`, {}, config);
+            await axios.put(`${API_URL}/api/doctors/${id}/approve`, {}, config);
             fetchPendingData();
         } catch (error) {
             console.error(error);
@@ -63,7 +65,7 @@ function AdminDashboard() {
     const handleRejectDoctor = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/doctors/${id}/reject`, {}, config);
+            await axios.put(`${API_URL}/api/doctors/${id}/reject`, {}, config);
             fetchPendingData();
         } catch (error) {
             console.error(error);
@@ -73,7 +75,7 @@ function AdminDashboard() {
     const handleApproveHospital = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/hospitals/${id}/approve`, {}, config);
+            await axios.put(`${API_URL}/api/hospitals/${id}/approve`, {}, config);
             fetchPendingData();
         } catch (error) {
             console.error(error);
@@ -83,7 +85,7 @@ function AdminDashboard() {
     const handleRejectHospital = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.delete(`${import.meta.env.VITE_API_URL}/api/hospitals/${id}/reject`, config);
+            await axios.delete(`${API_URL}/api/hospitals/${id}/reject`, config);
             fetchPendingData();
         } catch (error) {
             console.error(error);

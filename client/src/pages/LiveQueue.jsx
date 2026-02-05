@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function LiveQueue() {
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
@@ -22,7 +24,7 @@ function LiveQueue() {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` }
             };
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/appointments/hospital`, config);
+            const res = await axios.get(`${API_URL}/api/appointments/hospital`, config);
             setAppointments(res.data);
             setLoading(false);
         } catch (error) {
@@ -70,7 +72,7 @@ function LiveQueue() {
                                         appointments.map((app) => (
                                             <tr key={app._id} className="border-b border-gray-50 hover:bg-apple-gray/30 transition-colors">
                                                 <td className="p-6">
-                                                    <span className="text-2xl font-bold text-apple-blue">#{app.token?.number}</span>
+                                                    <span className="text-2xl font-bold text-apple-blue">#{app.token?.displayToken || app.token?.number}</span>
                                                 </td>
                                                 <td className="p-6">
                                                     <p className="font-semibold text-apple-text">{app.patient?.user?.name || 'Unknown'}</p>
@@ -85,8 +87,8 @@ function LiveQueue() {
                                                 </td>
                                                 <td className="p-6">
                                                     <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${app.token?.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
-                                                            app.token?.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                                'bg-gray-100 text-gray-500'
+                                                        app.token?.status === 'active' ? 'bg-green-100 text-green-700' :
+                                                            'bg-gray-100 text-gray-500'
                                                         }`}>
                                                         {app.token?.status}
                                                     </span>

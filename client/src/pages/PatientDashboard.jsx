@@ -5,6 +5,8 @@ import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function PatientDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -55,7 +57,7 @@ function PatientDashboard() {
                         Authorization: `Bearer ${user.token}`,
                     },
                 };
-                const API = import.meta.env.VITE_API_URL;
+                const API = API_URL;
 
                 // 1. Check Profile
                 let profileId = null;
@@ -88,7 +90,7 @@ function PatientDashboard() {
         if (!user) return;
 
         // Connect Socket
-        const newSocket = io(import.meta.env.VITE_API_URL);
+        const newSocket = io(API_URL);
         setSocket(newSocket);
 
         // Join patient specific room (using User ID as room for now)
@@ -119,7 +121,7 @@ function PatientDashboard() {
                     Authorization: `Bearer ${user.token}`,
                 },
             };
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/patients/profile`, profileFormData, config);
+            await axios.post(`${API_URL}/api/patients/profile`, profileFormData, config);
             // Refresh logic needs re-fetching or state update, reload is simple but crude
             window.location.reload();
         } catch (error) {
@@ -148,13 +150,13 @@ function PatientDashboard() {
                     'Content-Type': 'multipart/form-data'
                 },
             };
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/records`, formData, config);
+            await axios.post(`${API_URL}/api/records`, formData, config);
             alert('File Uploaded Successfully');
             setRecordTitle('');
             setUploadFile(null);
 
             // Refresh records
-            const recRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/records/patient/${patientProfile._id}`, { headers: { Authorization: `Bearer ${user.token}` } });
+            const recRes = await axios.get(`${API_URL}/api/records/patient/${patientProfile._id}`, { headers: { Authorization: `Bearer ${user.token}` } });
             setMedicalRecords(recRes.data);
 
         } catch (error) {
@@ -299,7 +301,7 @@ function PatientDashboard() {
                                                 <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase tracking-wide">{rec.recordType}</span>
                                             </div>
                                         </div>
-                                        <a href={`${import.meta.env.VITE_API_URL}${rec.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-apple-blue hover:bg-blue-50 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">View</a>
+                                        <a href={`${API_URL}${rec.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-apple-blue hover:bg-blue-50 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">View</a>
                                     </div>
                                 ))}
                             </div>

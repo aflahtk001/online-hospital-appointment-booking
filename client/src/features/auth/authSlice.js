@@ -12,7 +12,7 @@ const initialState = {
     message: '',
 };
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Register user
 export const register = createAsyncThunk('auth/register', async (user, thunkAPI) => {

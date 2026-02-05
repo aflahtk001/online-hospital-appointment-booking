@@ -25,14 +25,20 @@ const appointmentSchema = mongoose.Schema({
         type: Date,
         required: true
     },
+    queueDate: {
+        type: Date, // YYYY-MM-DD (normalized to start of day)
+        required: true
+    },
     // Token details generated after booking
     token: {
-        number: Number,
+        number: Number, // Daily Sequence Number (1, 2, 3...)
+        displayToken: String, // Format: DRX-DD-XXX
         status: {
             type: String,
             enum: ['waiting', 'serving', 'completed', 'skipped'],
             default: 'waiting'
-        }
+        },
+        estimatedTime: Number
     },
     type: {
         type: String,
