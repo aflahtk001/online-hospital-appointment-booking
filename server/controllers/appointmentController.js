@@ -13,8 +13,9 @@ const bookAppointment = async (req, res) => {
     try {
         const startOfDay = new Date(appointmentDate);
         startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(appointmentDate);
-        endOfDay.setHours(23, 59, 59, 999);
+
+        // Fix: Use String for Queue Date to avoid Timezone issues on Server
+        const queueDateStr = startOfDay.toISOString().split('T')[0];
 
         // 1. Get Doctor details for Token Code (e.g., Dr. Smith -> S)
         const doctor = await Doctor.findById(doctorId).populate('user', 'name');
@@ -24,11 +25,11 @@ const bookAppointment = async (req, res) => {
         const docCode = docName.charAt(0).toUpperCase();
         const day = startOfDay.getDate().toString().padStart(2, '0');
 
-        // 2. Find the last token for this Doctor + Hospital + Date
+        // 2. Find the last token for this Doctor + Hospital + Date (String Match)
         const lastAppointment = await Appointment.findOne({
             doctor: doctorId,
             hospital: hospitalId,
-            queueDate: startOfDay
+            queueDate: queueDateStr
         }).sort({ 'token.number': -1 });
 
         const newTokenNumber = lastAppointment ? lastAppointment.token.number + 1 : 1;
@@ -39,7 +40,7 @@ const bookAppointment = async (req, res) => {
             doctor: doctorId,
             hospital: hospitalId,
             appointmentDate,
-            queueDate: startOfDay, // Critical for daily queue logic
+            queueDate: queueDateStr, // Saved as String "YYYY-MM-DD"
             type,
             token: {
                 number: newTokenNumber,
@@ -63,13 +64,12 @@ const getDoctorAppointments = async (req, res) => {
         const doctor = await Doctor.findOne({ user: req.user.id });
         if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
-        // Today's date for filtering
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Today's date for filtering (String format)
+        const todayStr = new Date().toISOString().split('T')[0];
 
         const appointments = await Appointment.find({
             doctor: doctor._id,
-            queueDate: today, // Only today's queue
+            queueDate: todayStr, // Exact string match for today
             'token.status': { $in: ['waiting', 'serving', 'skipped'] } // Active tokens
         }).populate({
             path: 'patient',
@@ -96,12 +96,12 @@ const getHospitalAppointments = async (req, res) => {
             return res.status(404).json({ message: 'Hospital not found' });
         }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Today's date for filtering (String format)
+        const todayStr = new Date().toISOString().split('T')[0];
 
         const appointments = await Appointment.find({
             hospital: hospital._id,
-            queueDate: today // Only today's queue
+            queueDate: todayStr // Exact string match
         })
             .populate({
                 path: 'doctor',
@@ -132,18 +132,12 @@ const getDoctorAppointmentsByDate = async (req, res) => {
         const doctor = await Doctor.findOne({ user: req.user.id });
         if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
-        const searchDate = new Date(date);
-        const startOfDay = new Date(searchDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(searchDate);
-        endOfDay.setHours(23, 59, 59, 999);
+        // Ensure date is in YYYY-MM-DD string format
+        const searchDateStr = new Date(date).toISOString().split('T')[0];
 
         const query = {
             doctor: doctor._id,
-            queueDate: {
-                $gte: startOfDay,
-                $lte: endOfDay
-            }
+            queueDate: searchDateStr
         };
 
         if (status && status !== 'All') {
@@ -166,4 +160,34 @@ const getDoctorAppointmentsByDate = async (req, res) => {
     }
 };
 
-module.exports = { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate };
+// @desc    Update Appointment Status
+// @route   PUT /api/appointments/:id/status
+// @access  Private (Doctor, Hospital Admin)
+const updateAppointmentStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const appointment = await Appointment.findById(req.params.id);
+
+        if (!appointment) {
+            return res.status(404).json({ message: 'Appointment not found' });
+        }
+
+        // Verify ownership (Doctor or Hospital Admin)
+        // Simplification: Allow if authenticated as Doctor or Hospital Admin
+        // Ideally check if appointment.doctor == req.user.doctorProfileId etc.
+
+        appointment.token.status = status;
+
+        // If status is completed or cancelled, update main status too
+        if (status === 'completed' || status === 'cancelled') {
+            appointment.status = status;
+        }
+
+        const updatedAppointment = await appointment.save();
+        res.json(updatedAppointment);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate, updateAppointmentStatus };

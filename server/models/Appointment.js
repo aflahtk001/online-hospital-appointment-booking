@@ -26,7 +26,7 @@ const appointmentSchema = mongoose.Schema({
         required: true
     },
     queueDate: {
-        type: Date, // YYYY-MM-DD (normalized to start of day)
+        type: String, // YYYY-MM-DD (Exact Date String)
         required: true
     },
     // Token details generated after booking

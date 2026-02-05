@@ -136,19 +136,37 @@ function DoctorDashboard() {
         }
     };
 
-    const callNextPatient = () => {
+    const callNextPatient = async () => {
         const next = appointments.find(app => app.token.status === 'waiting');
         if (next) {
-            setCurrentPatient(next);
-            // Emit to server to broadcast to particular patient/queue
-            socket.emit('call_patient', {
-                doctorId: user._id,
-                patientId: next.patient._id,
-                tokenNumber: next.token.displayToken || next.token.number,
-                patientName: next.patient.user.name,
-                doctorName: user.name
-            });
-            alert(`Calling Token ${next.token.displayToken || next.token.number}: ${next.patient?.user?.name || 'Patient'}`);
+            try {
+                // 1. Update status in DB to 'serving'
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                await axios.put(`${API_URL}/api/appointments/${next._id}/status`, { status: 'serving' }, config);
+
+                // 2. Update Local State
+                const updatedAppointments = appointments.map(app =>
+                    app._id === next._id ? { ...app, token: { ...app.token, status: 'serving' } } : app
+                );
+                setAppointments(updatedAppointments);
+                setCurrentPatient({ ...next, token: { ...next.token, status: 'serving' } });
+
+                // 3. Emit Socket Event
+                socket.emit('call_patient', {
+                    doctorId: user._id,
+                    patientId: next.patient._id,
+                    tokenNumber: next.token.displayToken || next.token.number,
+                    patientName: next.patient.user.name,
+                    doctorName: user.name
+                });
+
+                // Optional: Mark previous serving patient as completed?
+                // For now, just focus on picking the next one.
+
+            } catch (error) {
+                console.error("Error calling patient:", error);
+                alert("Failed to update status");
+            }
         } else {
             alert("No patients waiting in queue");
         }
