@@ -15,6 +15,8 @@ function PatientDashboard() {
     const [patientProfile, setPatientProfile] = useState(null);
     const [prescriptions, setPrescriptions] = useState([]);
     const [selectedPrescription, setSelectedPrescription] = useState(null);
+    const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // Medical Records State
     const [medicalRecords, setMedicalRecords] = useState([]);
@@ -164,6 +166,21 @@ function PatientDashboard() {
             alert('Upload failed: ' + (error.response?.data?.message || error.message));
         }
     }
+
+    const analyzePrescription = async (medicines) => {
+        setIsAnalyzing(true);
+        setAiAnalysis(null);
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.post(`${API_URL}/api/prescriptions/analyze`, { medicines }, config);
+            setAiAnalysis(res.data);
+        } catch (error) {
+            console.error("AI Analysis Failed", error);
+            alert("Failed to analyze medicines. Please try again.");
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
 
 
     return (
@@ -382,7 +399,7 @@ function PatientDashboard() {
                                 <h2 className="text-2xl font-bold text-apple-text">Prescription Details</h2>
                                 <p className="text-apple-subtext">Dr. {selectedPrescription.doctor?.user?.name}</p>
                             </div>
-                            <button onClick={() => setSelectedPrescription(null)} className="text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-2 transition-colors">
+                            <button onClick={() => { setSelectedPrescription(null); setAiAnalysis(null); }} className="text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-2 transition-colors">
                                 ✕
                             </button>
                         </div>
@@ -394,7 +411,16 @@ function PatientDashboard() {
                             </div>
 
                             <div>
-                                <p className="text-xs text-apple-subtext uppercase tracking-wide font-semibold mb-3">Medicines</p>
+                                <div className="flex justify-between items-center mb-3">
+                                    <p className="text-xs text-apple-subtext uppercase tracking-wide font-semibold">Medicines</p>
+                                    <button
+                                        onClick={() => analyzePrescription(selectedPrescription.medicines)}
+                                        disabled={isAnalyzing}
+                                        className="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full font-bold hover:bg-purple-200 transition-colors flex items-center gap-1"
+                                    >
+                                        {isAnalyzing ? '✨ Analyzing...' : '✨ Ask AI'}
+                                    </button>
+                                </div>
                                 <div className="space-y-3">
                                     {selectedPrescription.medicines.map((med, idx) => (
                                         <div key={idx} className="bg-apple-gray/50 p-4 rounded-2xl border border-gray-100">
@@ -413,6 +439,26 @@ function PatientDashboard() {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* AI Analysis Result */}
+                            {aiAnalysis && (
+                                <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100 animate-fadeIn">
+                                    <h3 className="font-bold text-purple-800 mb-3 flex items-center gap-2">✨ AI Analysis</h3>
+                                    <div className="space-y-4">
+                                        {Array.isArray(aiAnalysis) ? aiAnalysis.map((item, idx) => (
+                                            <div key={idx} className="bg-white/60 p-3 rounded-xl">
+                                                <p className="font-semibold text-purple-900 mb-1">{item.name}</p>
+                                                <p className="text-sm text-gray-700 mb-1"><strong>Uses:</strong> {item.uses}</p>
+                                                <p className="text-sm text-gray-700 mb-1"><strong>Benefits:</strong> {item.benefits}</p>
+                                                <p className="text-xs text-gray-500"><strong>Side Effects:</strong> {item.sideEffects}</p>
+                                            </div>
+                                        )) : (
+                                            <p className="text-sm text-red-600">Could not analyze details.</p>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-purple-400 mt-2 text-center">AI-generated information. Consult your doctor for professional advice.</p>
+                                </div>
+                            )}
 
                             {selectedPrescription.notes && (
                                 <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-100 text-yellow-800 text-sm">

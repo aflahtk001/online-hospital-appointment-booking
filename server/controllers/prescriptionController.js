@@ -77,4 +77,57 @@ const getPrescriptionById = async (req, res) => {
     }
 };
 
-module.exports = { createPrescription, getPatientPrescriptions, getPrescriptionById };
+// @desc    Analyze medicines using AI
+// @route   POST /api/prescriptions/analyze
+// @access  Private (Patient/Doctor)
+const analyzeMedicines = async (req, res) => {
+    const { medicines } = req.body;
+
+    if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
+        return res.status(400).json({ message: 'No medicines provided for analysis' });
+    }
+
+    try {
+        const OpenAI = require('openai');
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+        const prompt = `
+        Analyze the following medicines and provide a structured JSON response.
+        For each medicine, provide:
+        - "name": Name of the medicine
+        - "uses": Common uses (simple language)
+        - "sideEffects": Potential side effects (brief)
+        - "benefits": Key benefits of taking it
+        
+        Medicines:
+        ${medicines.map(m => `- ${m.name} (${m.dosage})`).join('\n')}
+
+        Return ONLY raw JSON array. No markdown formatting.
+        Example format: [{"name": "...", "uses": "...", "sideEffects": "...", "benefits": "..."}]
+        `;
+
+        const completion = await openai.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model: "gpt-3.5-turbo",
+        });
+
+        const aiResponse = completion.choices[0].message.content;
+
+        // Parse JSON safely
+        let analysis;
+        try {
+            analysis = JSON.parse(aiResponse);
+        } catch (e) {
+            // Fallback if AI returns valid text but not strict JSON
+            analysis = [{ name: "Error", uses: "Could not parse AI response", sideEffects: "", benefits: aiResponse }];
+        }
+
+        res.json(analysis);
+
+    } catch (error) {
+        console.error('AI Analysis Error:', error);
+        res.status(500).json({ message: 'Failed to analyze medicines. Please try again later.' });
+    }
+};
+
+module.exports = { createPrescription, getPatientPrescriptions, getPrescriptionById, analyzeMedicines };
