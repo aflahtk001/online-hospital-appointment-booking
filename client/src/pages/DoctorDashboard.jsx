@@ -137,21 +137,39 @@ function DoctorDashboard() {
     };
 
     const callNextPatient = async () => {
-        const next = appointments.find(app => app.token.status === 'waiting');
-        if (next) {
-            try {
-                // 1. Update status in DB to 'serving'
-                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+
+        try {
+            // 1. Find currently serving patient
+            const currentServing = appointments.find(app => app.token.status === 'serving');
+
+            // 2. Mark currently serving as COMPLETED
+            if (currentServing) {
+                await axios.put(`${API_URL}/api/appointments/${currentServing._id}/status`, { status: 'completed' }, config);
+            }
+
+            // 3. Find next waiting patient
+            const next = appointments.find(app => app.token.status === 'waiting');
+
+            if (next) {
+                // 4. Mark next patient as SERVING
                 await axios.put(`${API_URL}/api/appointments/${next._id}/status`, { status: 'serving' }, config);
 
-                // 2. Update Local State
-                const updatedAppointments = appointments.map(app =>
-                    app._id === next._id ? { ...app, token: { ...app.token, status: 'serving' } } : app
-                );
+                // 5. Update Local State (Optimistic UI Update)
+                const updatedAppointments = appointments.map(app => {
+                    if (app.token.status === 'serving') {
+                        return { ...app, token: { ...app.token, status: 'completed' } };
+                    }
+                    if (app._id === next._id) {
+                        return { ...app, token: { ...app.token, status: 'serving' } };
+                    }
+                    return app;
+                });
+
                 setAppointments(updatedAppointments);
                 setCurrentPatient({ ...next, token: { ...next.token, status: 'serving' } });
 
-                // 3. Emit Socket Event
+                // 6. Emit Socket Event
                 socket.emit('call_patient', {
                     doctorId: user._id,
                     patientId: next.patient._id,
@@ -160,15 +178,23 @@ function DoctorDashboard() {
                     doctorName: user.name
                 });
 
-                // Optional: Mark previous serving patient as completed?
-                // For now, just focus on picking the next one.
-
-            } catch (error) {
-                console.error("Error calling patient:", error);
-                alert("Failed to update status");
+            } else {
+                // No more waiting patients
+                if (currentServing) {
+                    // Update the last serving one to completed in local state
+                    const updatedAppointments = appointments.map(app =>
+                        app.token.status === 'serving' ? { ...app, token: { ...app.token, status: 'completed' } } : app
+                    );
+                    setAppointments(updatedAppointments);
+                    setCurrentPatient(null);
+                    alert("Previous patient marked completed. Queue is now empty.");
+                } else {
+                    alert("No patients waiting in queue");
+                }
             }
-        } else {
-            alert("No patients waiting in queue");
+        } catch (error) {
+            console.error("Error calling patient:", error);
+            alert("Failed to update status");
         }
     };
 
