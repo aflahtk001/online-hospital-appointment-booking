@@ -88,14 +88,15 @@ const analyzeMedicines = async (req, res) => {
     }
 
     // DEBUG: Check if API key is present
-    if (!process.env.OPENAI_API_KEY) {
-        console.error('AI Analysis Error: Missing OPENAI_API_KEY env var');
-        return res.status(500).json({ message: 'Server configuration error: Missing OpenAI API Key. Please add OPENAI_API_KEY to environment variables.' });
+    if (!process.env.GEMINI_API_KEY) {
+        console.error('AI Analysis Error: Missing GEMINI_API_KEY env var');
+        return res.status(500).json({ message: 'Server configuration error: Missing Gemini API Key. Please add GEMINI_API_KEY to environment variables.' });
     }
 
     try {
-        const OpenAI = require('openai');
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const { GoogleGenerativeAI } = require("@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         const prompt = `
         Analyze the following medicines and provide a structured JSON response.
@@ -108,24 +109,25 @@ const analyzeMedicines = async (req, res) => {
         Medicines:
         ${medicines.map(m => `- ${m.name} (${m.dosage})`).join('\n')}
 
-        Return ONLY raw JSON array. No markdown formatting.
+        Return ONLY raw JSON array. No markdown formatting (no \`\`\`json blocks).
         Example format: [{"name": "...", "uses": "...", "sideEffects": "...", "benefits": "..."}]
         `;
 
-        const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-3.5-turbo",
-        });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
 
-        const aiResponse = completion.choices[0].message.content;
+        // Clean up markdown code blocks if Gemini includes them
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         // Parse JSON safely
         let analysis;
         try {
-            analysis = JSON.parse(aiResponse);
+            analysis = JSON.parse(text);
         } catch (e) {
+            console.error("JSON Parse Error:", e);
             // Fallback if AI returns valid text but not strict JSON
-            analysis = [{ name: "Error", uses: "Could not parse AI response", sideEffects: "", benefits: aiResponse }];
+            analysis = [{ name: "Error", uses: "Could not parse AI response", sideEffects: "", benefits: text }];
         }
 
         res.json(analysis);
