@@ -87,6 +87,12 @@ const analyzeMedicines = async (req, res) => {
         return res.status(400).json({ message: 'No medicines provided for analysis' });
     }
 
+    // DEBUG: Check if API key is present
+    if (!process.env.OPENAI_API_KEY) {
+        console.error('AI Analysis Error: Missing OPENAI_API_KEY env var');
+        return res.status(500).json({ message: 'Server configuration error: Missing OpenAI API Key. Please add OPENAI_API_KEY to environment variables.' });
+    }
+
     try {
         const OpenAI = require('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -126,7 +132,8 @@ const analyzeMedicines = async (req, res) => {
 
     } catch (error) {
         console.error('AI Analysis Error:', error);
-        res.status(500).json({ message: 'Failed to analyze medicines. Please try again later.' });
+        // RETURN DETAILED ERROR FOR DEBUGGING
+        res.status(500).json({ message: `AI Analysis Failed: ${error.message}` });
     }
 };
 
