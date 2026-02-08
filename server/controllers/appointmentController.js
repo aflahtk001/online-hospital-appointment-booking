@@ -64,8 +64,8 @@ const getDoctorAppointments = async (req, res) => {
         const doctor = await Doctor.findOne({ user: req.user.id });
         if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
-        // Today's date for filtering (String format)
-        const todayStr = new Date().toISOString().split('T')[0];
+        // Fix: Use IST (Asia/Kolkata) for "Today" to match user timezone
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         const appointments = await Appointment.find({
             doctor: doctor._id,
@@ -96,8 +96,8 @@ const getHospitalAppointments = async (req, res) => {
             return res.status(404).json({ message: 'Hospital not found' });
         }
 
-        // Today's date for filtering (String format)
-        const todayStr = new Date().toISOString().split('T')[0];
+        // Fix: Use IST (Asia/Kolkata) for "Today" to match user timezone
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         const appointments = await Appointment.find({
             hospital: hospital._id,
