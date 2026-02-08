@@ -96,8 +96,8 @@ const analyzeMedicines = async (req, res) => {
     try {
         const { GoogleGenerativeAI } = require("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Updated to gemini-2.0-flash as it is the available model
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        // Updated to gemini-flash-latest for better free tier availability
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         const prompt = `
         Analyze the following medicines and provide a structured JSON response.
