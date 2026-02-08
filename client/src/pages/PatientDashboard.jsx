@@ -176,7 +176,7 @@ function PatientDashboard() {
             setAiAnalysis(res.data);
         } catch (error) {
             console.error("AI Analysis Failed", error);
-            alert(error.response?.data?.message || "Failed to analyze medicines. Please try again.");
+            // alert(error.response?.data?.message || "Failed to analyze medicines. Please try again."); 
         } finally {
             setIsAnalyzing(false);
         }
