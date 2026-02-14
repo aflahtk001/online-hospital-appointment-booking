@@ -9,7 +9,8 @@ router.route('/')
         upload.single('file')(req, res, (err) => {
             if (err) {
                 console.error('Multer/Cloudinary Upload Error:', err);
-                return res.status(500).json({ message: 'Image Upload Failed: ' + err.message });
+                const errorMessage = err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err)) || 'Unknown Upload Error';
+                return res.status(500).json({ message: 'Image Upload Failed: ' + errorMessage });
             }
             next();
         });
