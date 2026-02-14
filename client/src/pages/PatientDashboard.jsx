@@ -318,7 +318,14 @@ function PatientDashboard() {
                                                 <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase tracking-wide">{rec.recordType}</span>
                                             </div>
                                         </div>
-                                        <a href={`${API_URL}${rec.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-apple-blue hover:bg-blue-50 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">View</a>
+                                        <a
+                                            href={rec.fileUrl.startsWith('http') ? rec.fileUrl : `${API_URL}${rec.fileUrl}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-apple-blue hover:bg-blue-50 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                                        >
+                                            View
+                                        </a>
                                     </div>
                                 ))}
                             </div>

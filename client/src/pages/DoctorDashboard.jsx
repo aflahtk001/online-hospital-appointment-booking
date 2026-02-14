@@ -640,7 +640,7 @@ function DoctorDashboard() {
                                                 </div>
                                             </div>
                                             <a
-                                                href={`${API_URL}${rec.fileUrl}`}
+                                                href={rec.fileUrl.startsWith('http') ? rec.fileUrl : `${API_URL}${rec.fileUrl}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="px-4 py-2 bg-white border border-gray-200 text-apple-blue text-sm font-medium rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-all shadow-sm"
