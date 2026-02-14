@@ -31,7 +31,111 @@ function PatientDashboard() {
     const [liveToken, setLiveToken] = useState(null);
     const [alertMessage, setAlertMessage] = useState('');
 
-    // ... (keeping existing code)
+    // Modal State
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [profileFormData, setProfileFormData] = useState({
+        dateOfBirth: '',
+        gender: 'Male',
+        bloodGroup: '',
+        contactNumber: ''
+    });
+
+    const onLogout = () => {
+        dispatch(logout());
+        dispatch(reset());
+        navigate('/');
+    };
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        // Fetch Patient Profile, Appointments & Prescriptions
+        const fetchData = async () => {
+            try {
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                };
+                const API = API_URL;
+
+                // 1. Check Profile
+                let profileId = null;
+                try {
+                    const profileRes = await axios.get(`${API}/api/patients/profile`, config);
+                    setPatientProfile(profileRes.data);
+                    profileId = profileRes.data._id;
+                } catch (err) {
+                    console.log('Profile not found, need creation');
+                }
+
+                if (profileId) {
+                    // 2. Fetch Prescriptions
+                    const presRes = await axios.get(`${API}/api/prescriptions/patient/${profileId}`, config);
+                    setPrescriptions(presRes.data);
+
+                    // 3. Fetch Medical Records
+                    const recRes = await axios.get(`${API}/api/records/patient/${profileId}`, config);
+                    setMedicalRecords(recRes.data);
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchData();
+    }, [user, navigate]);
+
+    useEffect(() => {
+        if (!user) return;
+
+        // Connect Socket
+        const newSocket = io(API_URL);
+        setSocket(newSocket);
+
+        // Join patient specific room (using User ID as room for now)
+        newSocket.emit('setup', user);
+
+        newSocket.on('connected', () => {
+            console.log('Socket Connected');
+        });
+
+        // Listen for queue updates
+        newSocket.on('patient_called', (data) => {
+            if (data.patientName === user.name) {
+                setLiveToken(data);
+                setAlertMessage(`📢 Your Token ${data.tokenNumber} is being served! Please proceed to Dr. ${data.doctorName || 'the doctor'}.`);
+            }
+        });
+
+        return () => {
+            newSocket.close();
+        };
+    }, [user]);
+
+    const handleProfileSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                },
+            };
+            await axios.post(`${API_URL}/api/patients/profile`, profileFormData, config);
+            // Refresh logic needs re-fetching or state update, reload is simple but crude
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert('Error creating profile');
+        }
+    };
+
+    const onProfileChange = (e) => {
+        setProfileFormData({ ...profileFormData, [e.target.name]: e.target.value });
+    };
 
     const handleFileUpload = async (e) => {
         e.preventDefault();
