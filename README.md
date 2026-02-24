@@ -1,4 +1,4 @@
-# Hospital Ecosystem Platform
+# Hospital Ecosystem Platform 
 
 A comprehensive MERN stack application for managing hospital operations, including patient appointments, doctor schedules, real-time queues, and medical records.
 
