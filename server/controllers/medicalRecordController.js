@@ -34,7 +34,8 @@ const uploadRecord = async (req, res) => {
 
         res.status(201).json(record);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Upload Error:', error);
+        res.status(500).json({ message: error.message || 'File upload failed' });
     }
 };
 

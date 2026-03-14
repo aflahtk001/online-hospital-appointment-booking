@@ -214,7 +214,6 @@ function DoctorDashboard() {
 
     const submitPrescription = async (e) => {
         e.preventDefault();
-        // Fallback if patient object structure is different (deep populate or check structure)
         const patId = currentPatient.patient?._id || currentPatient.patient;
 
         if (!currentPatient) return;

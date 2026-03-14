@@ -67,10 +67,7 @@ const importData = async () => {
             bio: 'Expert Cardiologist with 10 years of experience.',
             hospital: hospital._id,
             status: 'approved',
-            timings: {
-                "Monday": "09:00-17:00",
-                "Tuesday": "09:00-17:00"
-            }
+            timings: "Mon-Tue: 09:00-17:00"
         });
 
         console.log('Data Imported!');

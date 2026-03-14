@@ -21,11 +21,10 @@ function Login() {
 
     useEffect(() => {
         if (isError) {
-            alert(message); // Could use a toast here
+            alert(message);
         }
 
         if (isSuccess || user) {
-            // Redirect based on role
             if (user) {
                 switch (user.role) {
                     case 'patient': navigate('/patient-dashboard'); break;

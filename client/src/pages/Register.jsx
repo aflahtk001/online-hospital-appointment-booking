@@ -10,7 +10,7 @@ function Register() {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'patient', // Default role
+        role: 'patient'
     });
 
     const { name, email, password, confirmPassword, role } = formData;

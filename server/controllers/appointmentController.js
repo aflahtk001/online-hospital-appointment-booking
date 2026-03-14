@@ -11,11 +11,12 @@ const bookAppointment = async (req, res) => {
     const { doctorId, hospitalId, appointmentDate, type } = req.body;
 
     try {
-        const startOfDay = new Date(appointmentDate);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        // Fix: Use String for Queue Date to avoid Timezone issues on Server
-        const queueDateStr = startOfDay.toISOString().split('T')[0];
+        // Fix Timezone Issue: Convert incoming UTC date to IST (+05:30) explicitly 
+        // using toLocaleDateString to get the correct YYYY-MM-DD in India Standard Time
+        const appointmentDateObj = new Date(appointmentDate);
+        const queueDateStr = appointmentDateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        
+        const startOfDay = new Date(queueDateStr); // Normalization for other uses if needed
 
         // 1. Get Doctor details for Token Code (e.g., Dr. Smith -> S)
         const doctor = await Doctor.findById(doctorId).populate('user', 'name');
@@ -132,8 +133,9 @@ const getDoctorAppointmentsByDate = async (req, res) => {
         const doctor = await Doctor.findOne({ user: req.user.id });
         if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
 
-        // Ensure date is in YYYY-MM-DD string format
-        const searchDateStr = new Date(date).toISOString().split('T')[0];
+        // Ensure date is in YYYY-MM-DD string format (Convert input to IST)
+        const dateObj = new Date(date);
+        const searchDateStr = dateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
         const query = {
             doctor: doctor._id,

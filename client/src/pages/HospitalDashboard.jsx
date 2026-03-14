@@ -44,7 +44,6 @@ function HospitalDashboard() {
             setShowReportsModal(true);
         } catch (error) {
             console.error(error);
-            // Open anyway with partial data
             setShowReportsModal(true);
         }
     };

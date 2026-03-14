@@ -119,9 +119,6 @@ const rejectDoctor = async (req, res) => {
         doctor.status = 'rejected';
         await doctor.save();
 
-        // Optionally reject user access
-        // await User.findByIdAndUpdate(doctor.user, { isApproved: false });
-
         res.json({ message: 'Doctor rejected', doctor });
     } catch (error) {
         res.status(500).json({ message: error.message });

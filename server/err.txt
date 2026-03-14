@@ -1,0 +1,7 @@
+MongoNetworkError: read ECONNRESET
+    at TLSSocket.<anonymous> (C:\Users\aflah\Downloads\Doc\server\node_modules\mongodb\lib\cmap\connect.js:286:44)
+    at Object.onceWrapper (node:events:623:26)
+    at TLSSocket.emit (node:events:508:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)

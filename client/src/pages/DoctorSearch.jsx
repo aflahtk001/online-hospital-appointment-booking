@@ -80,13 +80,11 @@ function DoctorSearch() {
                     Authorization: `Bearer ${user.token}`,
                 },
             };
-            // Hardcoding a default hospital for now if doctor doesn't have one linked
-            // In real app, doctor.hospital would be populated
             const hospitalId = selectedDoctor.hospital || '65b4c1e8f23a1c2d3e4f5a6b';
 
             await axios.post(`${API_URL}/api/appointments`, {
                 doctorId: selectedDoctor._id,
-                hospitalId: hospitalId, // Fallback need actual ID from DB later
+                hospitalId: hospitalId,
                 appointmentDate,
                 type: 'visit'
             }, config);
