@@ -20,6 +20,14 @@ const hospitalSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    registrationNumber: {
+        type: String,
+        required: true
+    },
+    registrationValidity: {
+        type: String,
+        required: true
+    },
     departments: [{
         name: String,
         headDoctor: {

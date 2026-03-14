@@ -112,7 +112,7 @@ const getHospitalAppointments = async (req, res) => {
                 path: 'patient',
                 populate: { path: 'user', select: 'name' }
             })
-            .sort({ 'token.number': 1 }); // Sort by token number
+            .sort({ doctor: 1, 'token.number': 1 }); // Sort by Doctor then token number
 
         res.json(appointments);
     } catch (error) {
@@ -192,4 +192,46 @@ const updateAppointmentStatus = async (req, res) => {
     }
 };
 
-module.exports = { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate, updateAppointmentStatus };
+// @desc    Get Active Queue for Patient
+// @route   GET /api/appointments/patient/active
+// @access  Private (Patient)
+const getPatientActiveQueue = async (req, res) => {
+    try {
+        const Patient = require('../models/Patient');
+        const patient = await Patient.findOne({ user: req.user.id });
+        if (!patient) return res.status(404).json({ message: 'Patient profile not found' });
+
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+        const activeAppointment = await Appointment.findOne({
+            patient: patient._id,
+            queueDate: todayStr,
+            'token.status': { $in: ['waiting', 'serving'] }
+        }).populate({
+            path: 'doctor',
+            populate: { path: 'user', select: 'name' }
+        });
+
+        if (!activeAppointment) {
+            return res.json(null);
+        }
+
+        // Find what token is CURRENTLY SERVING for this doctor
+        const currentServing = await Appointment.findOne({
+            doctor: activeAppointment.doctor._id,
+            queueDate: todayStr,
+            'token.status': 'serving'
+        });
+
+        res.json({
+            tokenNumber: activeAppointment.token.displayToken || activeAppointment.token.number,
+            doctorName: activeAppointment.doctor?.user?.name,
+            status: activeAppointment.token.status,
+            currentServingToken: currentServing ? (currentServing.token.displayToken || currentServing.token.number) : 'Not Started'
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate, updateAppointmentStatus, getPatientActiveQueue };

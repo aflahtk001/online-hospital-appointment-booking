@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate, updateAppointmentStatus } = require('../controllers/appointmentController');
+const { bookAppointment, getDoctorAppointments, getHospitalAppointments, getDoctorAppointmentsByDate, updateAppointmentStatus, getPatientActiveQueue } = require('../controllers/appointmentController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Custom middleware to get Patient ID from User ID would be useful here
@@ -16,6 +16,7 @@ router.post('/', protect, authorize('patient'), async (req, res, next) => {
     next();
 }, bookAppointment);
 
+router.get('/patient/active', protect, authorize('patient'), getPatientActiveQueue);
 router.get('/doctor', protect, authorize('doctor'), getDoctorAppointments);
 router.get('/doctor/history', protect, authorize('doctor'), getDoctorAppointmentsByDate);
 

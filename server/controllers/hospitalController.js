@@ -5,7 +5,7 @@ const User = require('../models/User');
 // @route   POST /api/hospitals
 // @access  Private (Hospital Admin)
 const registerHospital = async (req, res) => {
-    const { name, address, contactNumber, departments } = req.body;
+    const { name, address, contactNumber, departments, registrationNumber, registrationValidity } = req.body;
 
     try {
         const hospital = new Hospital({
@@ -13,6 +13,8 @@ const registerHospital = async (req, res) => {
             admins: [req.user.id], // Creator is the first admin
             address,
             contactNumber,
+            registrationNumber,
+            registrationValidity,
             departments,
             isApproved: false // Pending super admin approval
         });
@@ -130,7 +132,7 @@ const getHospitalDoctors = async (req, res) => {
 // @route   POST /api/hospitals/doctors
 // @access  Private (Hospital Admin)
 const addDoctorToHospital = async (req, res) => {
-    const { name, email, password, specialization, experience, feesPerConsultation, timings } = req.body;
+    const { name, email, password, specialization, experience, feesPerConsultation, timings, registrationNumber, clinicName, location, yearOfRegistration, stateMedicalCouncil } = req.body;
 
     try {
         const hospital = await Hospital.findOne({ admins: req.user.id });
@@ -161,6 +163,11 @@ const addDoctorToHospital = async (req, res) => {
             specialization,
             experience: experience || 0,
             feesPerConsultation: feesPerConsultation || 0,
+            registrationNumber,
+            clinicName,
+            location,
+            yearOfRegistration,
+            stateMedicalCouncil,
             qualifications: ['MBBS'], // Default
             timings: timings || "Mon-Fri: 09:00 - 17:00", // Use provided or Default
             status: 'approved' // Auto-approve

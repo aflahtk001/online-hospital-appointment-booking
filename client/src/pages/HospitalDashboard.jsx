@@ -21,13 +21,20 @@ function HospitalDashboard() {
         password: '',
         specialization: '',
         experience: '',
-        feesPerConsultation: ''
+        feesPerConsultation: '',
+        registrationNumber: '',
+        clinicName: '',
+        location: '',
+        yearOfRegistration: '',
+        stateMedicalCouncil: ''
     });
 
     const [showRegisterForm, setShowRegisterForm] = useState(false);
     const [registerFormData, setRegisterFormData] = useState({
         name: '',
         contactNumber: '',
+        registrationNumber: '',
+        registrationValidity: '',
         street: '',
         city: '',
         state: '',
@@ -95,6 +102,8 @@ function HospitalDashboard() {
             const payload = {
                 name: registerFormData.name,
                 contactNumber: registerFormData.contactNumber,
+                registrationNumber: registerFormData.registrationNumber,
+                registrationValidity: registerFormData.registrationValidity,
                 address: {
                     street: registerFormData.street,
                     city: registerFormData.city,
@@ -123,7 +132,7 @@ function HospitalDashboard() {
             await axios.post(`${API_URL}/api/hospitals/doctors`, formData, config);
             alert('Doctor Added Successfully');
             setShowModal(false);
-            setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '' });
+            setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '', registrationNumber: '', clinicName: '', location: '' });
             fetchHospitalData(); // Refresh list
         } catch (error) {
             console.error(error);
@@ -154,16 +163,62 @@ function HospitalDashboard() {
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Contact Number</label>
-                            <input
-                                type="text"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
-                                placeholder="e.g. +1 555-0123"
-                                value={registerFormData.contactNumber}
-                                onChange={(e) => setRegisterFormData({ ...registerFormData, contactNumber: e.target.value })}
-                                required
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Contact Number</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="e.g. +1 555-0123"
+                                    value={registerFormData.contactNumber}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, contactNumber: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">State</label>
+                                <select
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    value={registerFormData.state}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, state: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select State</option>
+                                    {[
+                                        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+                                        "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+                                        "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+                                        "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+                                        "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
+                                        "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", 
+                                        "Lakshadweep", "Puducherry"
+                                    ].map(state => <option key={state} value={state}>{state}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Registration Number</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="Reg. No"
+                                    value={registerFormData.registrationNumber}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, registrationNumber: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Registration Validity</label>
+                                <input
+                                    type="date"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    value={registerFormData.registrationValidity}
+                                    onChange={(e) => setRegisterFormData({ ...registerFormData, registrationValidity: e.target.value })}
+                                    required
+                                />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -184,16 +239,6 @@ function HospitalDashboard() {
                                     placeholder="New York"
                                     value={registerFormData.city}
                                     onChange={(e) => setRegisterFormData({ ...registerFormData, city: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">State</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
-                                    placeholder="NY"
-                                    value={registerFormData.state}
-                                    onChange={(e) => setRegisterFormData({ ...registerFormData, state: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -338,6 +383,45 @@ function HospitalDashboard() {
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Password</label>
                                 <input type="password" name="password" placeholder="••••••••" value={formData.password} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Doctor Registration Number</label>
+                                <input type="text" name="registrationNumber" placeholder="e.g. 12345" value={formData.registrationNumber} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Clinic Name</label>
+                                    <input type="text" name="clinicName" placeholder="Hope Clinic" value={formData.clinicName} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Location</label>
+                                    <input type="text" name="location" placeholder="New York, NY" value={formData.location} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Year of Registration</label>
+                                    <input type="number" name="yearOfRegistration" placeholder="2015" value={formData.yearOfRegistration} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="1950" max={new Date().getFullYear()} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">State Medical Council</label>
+                                    <select name="stateMedicalCouncil" value={formData.stateMedicalCouncil} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required>
+                                        <option value="">Select Council</option>
+                                        {[
+                                            "Andhra Pradesh Medical Council", "Arunachal Pradesh Medical Council", "Assam Medical Council",
+                                            "Bihar Medical Council", "Chandigarh Medical Council", "Chhattisgarh Medical Council",
+                                            "Delhi Medical Council", "Goa Medical Council", "Gujarat Medical Council",
+                                            "Haryana Medical Council", "Himachal Pradesh Medical Council", "Jammu & Kashmir Medical Council",
+                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Kerala State Medical Council",
+                                            "Madhya Pradesh Medical Council", "Maharashtra Medical Council", "Manipur Medical Council",
+                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Nagaland Medical Council",
+                                            "Odisha Medical Council", "Pondicherry Medical Council", "Punjab Medical Council",
+                                            "Rajasthan Medical Council", "Sikkim Medical Council", "Tamil Nadu Medical Council",
+                                            "Telangana State Medical Council", "Tripura State Medical Council", "Uttar Pradesh Medical Council",
+                                            "Uttarakhand Medical Council", "West Bengal Medical Council"
+                                        ].map(council => <option key={council} value={council}>{council}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

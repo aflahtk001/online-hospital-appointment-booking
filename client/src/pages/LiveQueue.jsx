@@ -16,7 +16,14 @@ function LiveQueue() {
             navigate('/login');
             return;
         }
+        
+        // Initial fetch
         fetchQueue();
+
+        // Setup polling every 10 seconds
+        const interval = setInterval(fetchQueue, 10000);
+
+        return () => clearInterval(interval); // Cleanup on unmount
     }, [user, navigate]);
 
     const fetchQueue = async () => {
@@ -28,8 +35,8 @@ function LiveQueue() {
             setAppointments(res.data);
             setLoading(false);
         } catch (error) {
-            console.error(error);
-            setLoading(false);
+            console.error("Queue Fetch Error:", error);
+            // Don't set loading to false if it's a background poll
         }
     };
 
@@ -69,34 +76,63 @@ function LiveQueue() {
                                 </thead>
                                 <tbody>
                                     {appointments.length > 0 ? (
-                                        appointments.map((app) => (
-                                            <tr key={app._id} className="border-b border-gray-50 hover:bg-apple-gray/30 transition-colors">
-                                                <td className="p-6">
-                                                    <span className="text-2xl font-bold text-apple-blue">#{app.token?.displayToken || app.token?.number}</span>
-                                                </td>
-                                                <td className="p-6">
-                                                    <p className="font-semibold text-apple-text">{app.patient?.user?.name || 'Unknown'}</p>
-                                                </td>
-                                                <td className="p-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
-                                                            {app.doctor?.user?.name?.charAt(0)}
+                                        // Group appointments by doctor
+                                        Object.values(appointments.reduce((acc, app) => {
+                                            const docId = app.doctor?._id;
+                                            if (!acc[docId]) acc[docId] = { doctor: app.doctor, apps: [] };
+                                            acc[docId].apps.push(app);
+                                            return acc;
+                                        }, {})).map((group, gIdx) => (
+                                            <React.Fragment key={group.doctor?._id || gIdx}>
+                                                {/* Doctor Header Row */}
+                                                <tr className="bg-apple-blue/5 border-l-4 border-apple-blue">
+                                                    <td colSpan="5" className="p-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-apple-blue text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                                                {group.doctor?.user?.name?.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-apple-text">Dr. {group.doctor?.user?.name}</p>
+                                                                <p className="text-[10px] text-apple-subtext uppercase tracking-widest font-bold">{group.doctor?.specialization}</p>
+                                                            </div>
                                                         </div>
-                                                        <span className="text-apple-text font-medium">Dr. {app.doctor?.user?.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-6">
-                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${app.token?.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' :
-                                                        app.token?.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                            'bg-gray-100 text-gray-500'
-                                                        }`}>
-                                                        {app.token?.status}
-                                                    </span>
-                                                </td>
-                                                <td className="p-6 text-apple-subtext font-medium">
-                                                    {new Date(app.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                </tr>
+                                                {/* Patient Rows */}
+                                                {group.apps.map((app) => (
+                                                    <tr key={app._id} className="border-b border-gray-50 hover:bg-apple-gray/30 transition-colors">
+                                                        <td className="p-6 pl-10">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-2xl font-black text-apple-blue tracking-tighter leading-none">#{app.token?.displayToken || app.token?.number}</span>
+                                                                <span className="text-[10px] text-apple-subtext font-bold uppercase mt-1">Token Number</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <p className="font-bold text-apple-text">{app.patient?.user?.name || 'Anonymous'}</p>
+                                                            <p className="text-[10px] text-apple-subtext font-medium">Patient</p>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-apple-text font-bold">OPD {app.doctor?.clinicName || 'General'}</span>
+                                                                <span className="text-[10px] text-apple-subtext font-bold uppercase">Department</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${
+                                                                app.token?.status === 'waiting' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                                                app.token?.status === 'serving' ? 'bg-green-500 text-white border-green-600 animate-pulse' :
+                                                                app.token?.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                                'bg-gray-50 text-gray-500 border-gray-200'
+                                                                }`}>
+                                                                {app.token?.status === 'serving' ? '● Serving Now' : app.token?.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-6 text-apple-subtext font-bold text-sm">
+                                                            {new Date(app.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </React.Fragment>
                                         ))
                                     ) : (
                                         <tr>

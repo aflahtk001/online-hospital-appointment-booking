@@ -80,6 +80,12 @@ function PatientDashboard() {
                     // 3. Fetch Medical Records
                     const recRes = await axios.get(`${API}/api/records/patient/${profileId}`, config);
                     setMedicalRecords(recRes.data);
+
+                    // 4. Fetch Active Queue Token
+                    const queueRes = await axios.get(`${API}/api/appointments/patient/active`, config);
+                    if (queueRes.data) {
+                        setLiveToken(queueRes.data);
+                    }
                 }
 
             } catch (error) {
@@ -87,6 +93,10 @@ function PatientDashboard() {
             }
         };
         fetchData();
+
+        // Setup polling every 15 seconds for queue status
+        const interval = setInterval(fetchData, 15000);
+        return () => clearInterval(interval);
     }, [user, navigate]);
 
     useEffect(() => {
@@ -198,9 +208,17 @@ function PatientDashboard() {
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Patient Portal</h1>
-                        <p className="text-apple-subtext text-lg">Welcome back, {user && user.name}</p>
+                    <div className="flex items-center gap-6">
+                        <div>
+                            <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Patient Portal</h1>
+                            <p className="text-apple-subtext text-lg">Welcome back, {user && user.name}</p>
+                        </div>
+                        {liveToken && (
+                            <div className="bg-apple-blue/10 border border-apple-blue/20 px-6 py-2 rounded-2xl flex flex-col items-center">
+                                <span className="text-[10px] text-apple-blue font-bold uppercase tracking-widest">Your Token</span>
+                                <span className="text-2xl font-black text-apple-blue tracking-tighter">#{liveToken.tokenNumber}</span>
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={onLogout}
@@ -248,10 +266,21 @@ function PatientDashboard() {
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold mb-4 text-apple-text">Live Queue Status</h2>
                             {liveToken ? (
-                                <div className="text-center py-4">
-                                    <p className="text-apple-subtext text-sm uppercase tracking-wide font-medium">Your Token</p>
-                                    <h3 className="text-5xl font-bold text-apple-blue my-2">{liveToken.tokenNumber}</h3>
-                                    <p className="text-apple-text font-medium">Proceed to consult.</p>
+                                <div className="text-center py-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                                    <p className="text-apple-subtext text-xs uppercase tracking-wide font-bold mb-1">Now Calling</p>
+                                    <h3 className="text-5xl font-black text-apple-blue my-2 tracking-tighter animate-bounce">{liveToken.currentServingToken}</h3>
+                                    <p className="text-apple-text font-semibold text-sm">Doctor: Dr. {liveToken.doctorName}</p>
+                                    <div className="mt-4 flex flex-col items-center gap-2">
+                                        <div className="flex gap-2">
+                                            <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase ${liveToken.status === 'serving' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                                                Your Token: {liveToken.tokenNumber}
+                                            </span>
+                                            <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase ${liveToken.status === 'serving' ? 'bg-green-600 text-white animate-pulse' : 'bg-yellow-500 text-white'}`}>
+                                                {liveToken.status === 'serving' ? 'Your Turn!' : 'Waiting'}
+                                            </span>
+                                        </div>
+                                        <p className="text-[10px] text-apple-subtext italic">Board updates automatically every 15s</p>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="text-center py-6">

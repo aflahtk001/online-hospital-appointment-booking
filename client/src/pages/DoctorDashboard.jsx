@@ -31,7 +31,12 @@ function DoctorDashboard() {
         qualifications: '',
         feesPerConsultation: '',
         bio: '',
-        timings: ''
+        timings: '',
+        registrationNumber: '',
+        clinicName: '',
+        location: '',
+        yearOfRegistration: '',
+        stateMedicalCouncil: ''
     });
 
     // Medical History State
@@ -88,6 +93,13 @@ function DoctorDashboard() {
             };
             const res = await axios.get(`${API_URL}/api/appointments/doctor`, config);
             setAppointments(res.data);
+            
+            // Auto-detect currently serving patient from the list
+            const serving = res.data.find(app => app.token.status === 'serving');
+            if (serving) {
+                setCurrentPatient(serving);
+            }
+
             setIsProfileMissing(false);
         } catch (error) {
             if (error.response && error.response.status === 404) {
@@ -198,6 +210,29 @@ function DoctorDashboard() {
         }
     };
 
+    const finishCurrentPatient = async () => {
+        if (!currentPatient) {
+            alert("No patient is currently being served");
+            return;
+        }
+
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        try {
+            await axios.put(`${API_URL}/api/appointments/${currentPatient._id}/status`, { status: 'completed' }, config);
+            
+            const updatedAppointments = appointments.map(app =>
+                app._id === currentPatient._id ? { ...app, token: { ...app.token, status: 'completed' } } : app
+            );
+            
+            setAppointments(updatedAppointments);
+            setCurrentPatient(null);
+            alert("Patient marked as completed");
+        } catch (error) {
+            console.error("Error finishing patient:", error);
+            alert("Failed to update status");
+        }
+    };
+
     // Prescription Logic
     const handlePrescriptionChange = (index, field, value) => {
         const newMedicines = [...prescriptionData.medicines];
@@ -249,13 +284,83 @@ function DoctorDashboard() {
                     <h1 className="text-3xl font-semibold text-apple-text mb-4">Complete Your Profile</h1>
                     <p className="text-apple-subtext mb-8">Please provide your professional details to start accepting appointments.</p>
 
-                    <form onSubmit={handleCreateProfile} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Specialization</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                        <form onSubmit={handleCreateProfile} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Doctor Registration Number</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        placeholder="e.g. 12345"
+                                        value={profileForm.registrationNumber}
+                                        onChange={(e) => setProfileForm({ ...profileForm, registrationNumber: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Clinic Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        placeholder="e.g. Hope Medical Center"
+                                        value={profileForm.clinicName}
+                                        onChange={(e) => setProfileForm({ ...profileForm, clinicName: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Location</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        placeholder="e.g. Downtown, NY"
+                                        value={profileForm.location}
+                                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Year of Registration</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        placeholder="e.g. 2015"
+                                        value={profileForm.yearOfRegistration}
+                                        onChange={(e) => setProfileForm({ ...profileForm, yearOfRegistration: e.target.value })}
+                                        required
+                                        min="1950"
+                                        max={new Date().getFullYear()}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">State Medical Council</label>
+                                    <select
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        value={profileForm.stateMedicalCouncil}
+                                        onChange={(e) => setProfileForm({ ...profileForm, stateMedicalCouncil: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Select Council</option>
+                                        {[
+                                            "Andhra Pradesh Medical Council", "Arunachal Pradesh Medical Council", "Assam Medical Council",
+                                            "Bihar Medical Council", "Chandigarh Medical Council", "Chhattisgarh Medical Council",
+                                            "Delhi Medical Council", "Goa Medical Council", "Gujarat Medical Council",
+                                            "Haryana Medical Council", "Himachal Pradesh Medical Council", "Jammu & Kashmir Medical Council",
+                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Kerala State Medical Council",
+                                            "Madhya Pradesh Medical Council", "Maharashtra Medical Council", "Manipur Medical Council",
+                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Nagaland Medical Council",
+                                            "Odisha Medical Council", "Pondicherry Medical Council", "Punjab Medical Council",
+                                            "Rajasthan Medical Council", "Sikkim Medical Council", "Tamil Nadu Medical Council",
+                                            "Telangana State Medical Council", "Tripura State Medical Council", "Uttar Pradesh Medical Council",
+                                            "Uttarakhand Medical Council", "West Bengal Medical Council"
+                                        ].map(council => <option key={council} value={council}>{council}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Specialization</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                     placeholder="e.g. Cardiologist"
                                     value={profileForm.specialization}
                                     onChange={(e) => setProfileForm({ ...profileForm, specialization: e.target.value })}
@@ -452,8 +557,11 @@ function DoctorDashboard() {
                                 >
                                     <span>📢</span> Call Next Patient
                                 </button>
-                                <button className="bg-orange-100 text-orange-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-orange-200 transition-all flex items-center gap-2">
-                                    <span>⏸</span> Pause Queue
+                                <button 
+                                    onClick={finishCurrentPatient}
+                                    className="bg-blue-100 text-blue-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-200 transition-all flex items-center gap-2"
+                                >
+                                    <span>✅</span> Finish Serving
                                 </button>
                             </div>
                         </div>

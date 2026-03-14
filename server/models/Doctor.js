@@ -43,6 +43,26 @@ const doctorSchema = mongoose.Schema({
     hospital: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Hospital'
+    },
+    registrationNumber: {
+        type: String,
+        required: true
+    },
+    clinicName: {
+        type: String,
+        required: true
+    },
+    location: {
+        type: String,
+        required: true
+    },
+    yearOfRegistration: {
+        type: Number,
+        required: true
+    },
+    stateMedicalCouncil: {
+        type: String,
+        required: true
     }
 }, {
     timestamps: true
