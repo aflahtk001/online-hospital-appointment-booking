@@ -7,20 +7,16 @@ const doctorSchema = mongoose.Schema({
         required: true
     },
     specialization: {
-        type: String,
-        required: true
+        type: String
     },
     qualifications: {
-        type: [String],
-        required: true
+        type: [String]
     },
     experience: {
-        type: Number, // Years
-        required: true
+        type: Number // Years
     },
     feesPerConsultation: {
-        type: Number,
-        required: true
+        type: Number
     },
     bio: {
         type: String
@@ -45,24 +41,25 @@ const doctorSchema = mongoose.Schema({
         ref: 'Hospital'
     },
     registrationNumber: {
-        type: String,
-        required: true
+        type: String
     },
     clinicName: {
-        type: String,
-        required: true
+        type: String
     },
     location: {
-        type: String,
-        required: true
+        type: String
     },
     yearOfRegistration: {
-        type: Number,
-        required: true
+        type: Number
     },
     stateMedicalCouncil: {
-        type: String,
-        required: true
+        type: String
+    },
+    dateOfBirth: {
+        type: Date
+    },
+    imrCertificate: {
+        type: String // Cloudinary URL
     }
 }, {
     timestamps: true

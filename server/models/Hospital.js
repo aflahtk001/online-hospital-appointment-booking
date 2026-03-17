@@ -43,6 +43,11 @@ const hospitalSchema = mongoose.Schema({
     isApproved: {
         type: Boolean,
         default: false // Super admin approval needed
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     }
 }, {
     timestamps: true

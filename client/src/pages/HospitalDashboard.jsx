@@ -146,10 +146,10 @@ function HospitalDashboard() {
 
     if (showRegisterForm) {
         return (
-            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-6">
-                <div className="bg-white p-10 rounded-3xl shadow-xl max-w-2xl w-full">
+            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-4 sm:p-6">
+                <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl max-w-2xl w-full">
                     <h1 className="text-3xl font-semibold text-apple-text mb-4">Register Your Hospital</h1>
-                    <p className="text-apple-subtext mb-8">Please provide your facility details to get started.</p>
+                    <p className="text-apple-subtext mb-8 text-center sm:text-left">Please provide your facility details to get started.</p>
 
                     <form onSubmit={handleRegisterHospital} className="space-y-6">
                         <div>
@@ -163,7 +163,7 @@ function HospitalDashboard() {
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Contact Number</label>
                                 <input
@@ -197,7 +197,7 @@ function HospitalDashboard() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Registration Number</label>
                                 <input
@@ -220,7 +220,7 @@ function HospitalDashboard() {
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Street</label>
                                 <input
@@ -263,17 +263,17 @@ function HospitalDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8 relative">
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="text-center sm:text-left">
                         <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Hospital Portal</h1>
                         <p className="text-apple-subtext text-lg">Admin Console for {user && user.name}</p>
                     </div>
                     <button
                         onClick={onLogout}
-                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
                         Sign Out
                     </button>
@@ -281,11 +281,18 @@ function HospitalDashboard() {
 
                 {/* Hospital Info Banner */}
                 {hospital && (
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden">
                         <div className="relative z-10">
-                            <h2 className="text-4xl font-bold tracking-tight mb-2">{hospital.name}</h2>
+                            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-2">{hospital.name}</h2>
                             <p className="text-blue-100 text-lg flex items-center gap-2">
                                 {hospital.address?.city}, {hospital.address?.state}
+                                <span className={`ml-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-inner ${
+                                    hospital.status === 'approved' ? 'bg-green-400/30 text-white border border-green-400/50' :
+                                    hospital.status === 'rejected' ? 'bg-red-400/30 text-white border border-red-400/50' :
+                                    'bg-amber-400/30 text-white border border-amber-400/50'
+                                }`}>
+                                    {hospital.status}
+                                </span>
                             </p>
                             <div className="mt-6 flex flex-wrap gap-2">
                                 {hospital.departments.map((d, i) => (
@@ -303,12 +310,12 @@ function HospitalDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Doctors List */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 min-h-[500px]">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 min-h-[500px]">
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                             <h2 className="text-2xl font-semibold text-apple-text">Medical Staff</h2>
                             <button
                                 onClick={() => setShowModal(true)}
-                                className="bg-apple-blue text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
+                                className="w-full sm:w-auto bg-apple-blue text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
                             >
                                 + Add Doctor
                             </button>
@@ -317,7 +324,7 @@ function HospitalDashboard() {
                         {doctors.length > 0 ? (
                             <ul className="space-y-4">
                                 {doctors.map(doc => (
-                                    <li key={doc._id} className="flex justify-between items-center p-4 bg-apple-gray/50 rounded-2xl hover:bg-apple-gray transition-colors">
+                                    <li key={doc._id} className="flex flex-col sm:flex-row justify-between items-center p-4 bg-apple-gray/50 rounded-2xl hover:bg-apple-gray transition-colors gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
                                                 {doc.user?.name?.charAt(0) || 'D'}
@@ -327,7 +334,7 @@ function HospitalDashboard() {
                                                 <p className="text-apple-subtext text-sm">{doc.specialization}</p>
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        <span className={`w-full sm:w-auto text-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                             {doc.status}
                                         </span>
                                     </li>
@@ -343,15 +350,15 @@ function HospitalDashboard() {
 
                     {/* Queue / Stats Panel */}
                     <div className="space-y-6">
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                            <h2 className="text-2xl font-semibold mb-4 text-apple-text">Quick Actions</h2>
-                            <p className="text-apple-subtext mb-6">Manage hospital operations and view reports.</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button onClick={() => navigate('/hospital-queue')} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <h2 className="text-2xl font-semibold mb-4 text-apple-text text-center sm:text-left">Quick Actions</h2>
+                            <p className="text-apple-subtext mb-6 text-center sm:text-left">Manage hospital operations and view reports.</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button onClick={() => navigate('/hospital-queue')} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group flex flex-col items-center sm:items-start">
                                     <span className="block text-2xl mb-2">🏥</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">ED/OPD Queue</span>
                                 </button>
-                                <button onClick={handleOpenReports} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group">
+                                <button onClick={handleOpenReports} className="p-4 rounded-2xl bg-apple-gray hover:bg-gray-200 transition-colors text-left group flex flex-col items-center sm:items-start">
                                     <span className="block text-2xl mb-2">📊</span>
                                     <span className="font-semibold text-apple-text group-hover:text-apple-blue">Reports</span>
                                 </button>
@@ -364,7 +371,7 @@ function HospitalDashboard() {
             {/* Add Doctor Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg transform transition-all scale-100">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all scale-100">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold text-apple-text">Add New Doctor</h2>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
@@ -388,7 +395,7 @@ function HospitalDashboard() {
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Doctor Registration Number</label>
                                 <input type="text" name="registrationNumber" placeholder="e.g. 12345" value={formData.registrationNumber} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Clinic Name</label>
                                     <input type="text" name="clinicName" placeholder="Hope Clinic" value={formData.clinicName} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
@@ -398,7 +405,7 @@ function HospitalDashboard() {
                                     <input type="text" name="location" placeholder="New York, NY" value={formData.location} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Year of Registration</label>
                                     <input type="number" name="yearOfRegistration" placeholder="2015" value={formData.yearOfRegistration} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="1950" max={new Date().getFullYear()} />
@@ -409,21 +416,24 @@ function HospitalDashboard() {
                                         <option value="">Select Council</option>
                                         {[
                                             "Andhra Pradesh Medical Council", "Arunachal Pradesh Medical Council", "Assam Medical Council",
-                                            "Bihar Medical Council", "Chandigarh Medical Council", "Chhattisgarh Medical Council",
-                                            "Delhi Medical Council", "Goa Medical Council", "Gujarat Medical Council",
-                                            "Haryana Medical Council", "Himachal Pradesh Medical Council", "Jammu & Kashmir Medical Council",
-                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Kerala State Medical Council",
-                                            "Madhya Pradesh Medical Council", "Maharashtra Medical Council", "Manipur Medical Council",
-                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Nagaland Medical Council",
-                                            "Odisha Medical Council", "Pondicherry Medical Council", "Punjab Medical Council",
-                                            "Rajasthan Medical Council", "Sikkim Medical Council", "Tamil Nadu Medical Council",
-                                            "Telangana State Medical Council", "Tripura State Medical Council", "Uttar Pradesh Medical Council",
-                                            "Uttarakhand Medical Council", "West Bengal Medical Council"
+                                            "Bhopal Medical Council", "Bihar Medical Council", "Bombay Medical Council",
+                                            "Chandigarh Medical Council", "Chattisgarh Medical Council", "Delhi Medical Council",
+                                            "Goa Medical Council", "Gujarat Medical Council", "Haryana Medical Council",
+                                            "Himachal Pradesh Medical Council", "Hyderabad Medical Council", "Jammu & Kashmir Medical Council",
+                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Madhya Pradesh Medical Council",
+                                            "Madras Medical Council", "Mahakoshal Medical Council", "Maharashtra Medical Council",
+                                            "Manipur Medical Council", "Medical Council of India", "Medical Council of Tanganyika",
+                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Mysore Medical Council",
+                                            "Nagaland Medical Council", "Orissa Council of Medical Registration", "Pondicherry Medical Council",
+                                            "Punjab Medical Council", "Rajasthan Medical Council", "Sikkim Medical Council",
+                                            "Tamil Nadu Medical Council", "Telangana State Medical Council", "Travancore Cochin Medical Council, Trivandrum",
+                                            "Tripura State Medical Council", "Uttar Pradesh Medical Council", "Uttarakhand Medical Council",
+                                            "Vidharba Medical Council", "West Bengal Medical Council"
                                         ].map(council => <option key={council} value={council}>{council}</option>)}
                                     </select>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Specialization</label>
                                     <input type="text" name="specialization" placeholder="Cardiology" value={formData.specialization} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
@@ -438,7 +448,7 @@ function HospitalDashboard() {
                                 <input type="number" name="feesPerConsultation" placeholder="150" value={formData.feesPerConsultation} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="0" />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Shift Start</label>
                                     <input
@@ -478,7 +488,7 @@ function HospitalDashboard() {
             {/* Reports Modal */}
             {showReportsModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
-                    <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-lg w-full">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-lg w-full">
                         <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                             <h2 className="text-2xl font-bold text-apple-text">Hospital Analytics</h2>
                             <button onClick={() => setShowReportsModal(false)} className="bg-gray-100 p-2 rounded-full text-gray-400 hover:text-apple-text transition-colors">✕</button>

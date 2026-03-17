@@ -53,6 +53,7 @@ const approveHospital = async (req, res) => {
         }
 
         hospital.isApproved = true;
+        hospital.status = 'approved';
         await hospital.save();
 
         res.json({ message: 'Hospital approved successfully', hospital });
@@ -62,7 +63,7 @@ const approveHospital = async (req, res) => {
 };
 
 // @desc    Reject Hospital
-// @route   DELETE /api/hospitals/:id/reject
+// @route   PUT /api/hospitals/:id/reject
 // @access  Private (Admin)
 const rejectHospital = async (req, res) => {
     try {
@@ -71,9 +72,25 @@ const rejectHospital = async (req, res) => {
             return res.status(404).json({ message: 'Hospital not found' });
         }
 
-        await hospital.deleteOne();
+        hospital.status = 'rejected';
+        hospital.isApproved = false;
+        await hospital.save();
 
-        res.json({ message: 'Hospital rejected and removed' });
+        res.json({ message: 'Hospital rejected', hospital });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get Hospitals by Status
+// @route   GET /api/hospitals/admin/list
+// @access  Private (Admin)
+const getHospitalsByStatus = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const query = status ? { status } : {};
+        const hospitals = await Hospital.find(query);
+        res.json(hospitals);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -84,7 +101,7 @@ const rejectHospital = async (req, res) => {
 // @access  Private (Admin)
 const getPendingHospitals = async (req, res) => {
     try {
-        const hospitals = await Hospital.find({ isApproved: false });
+        const hospitals = await Hospital.find({ status: 'pending' });
         res.json(hospitals);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -221,4 +238,4 @@ const getHospitalStats = async (req, res) => {
     }
 };
 
-module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats };
+module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats, getHospitalsByStatus };

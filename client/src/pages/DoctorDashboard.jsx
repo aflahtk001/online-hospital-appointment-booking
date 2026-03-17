@@ -13,6 +13,7 @@ function DoctorDashboard() {
     const { user } = useSelector((state) => state.auth);
 
     const [appointments, setAppointments] = useState([]);
+    const [doctorProfile, setDoctorProfile] = useState(null);
     const [currentPatient, setCurrentPatient] = useState(null);
     const [socket, setSocket] = useState(null);
 
@@ -36,8 +37,12 @@ function DoctorDashboard() {
         clinicName: '',
         location: '',
         yearOfRegistration: '',
-        stateMedicalCouncil: ''
+        stateMedicalCouncil: '',
+        dateOfBirth: ''
     });
+
+    const [certificateFile, setCertificateFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     // Medical History State
     const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -100,13 +105,26 @@ function DoctorDashboard() {
                 setCurrentPatient(serving);
             }
 
-            setIsProfileMissing(false);
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
+            // 2. Fetch Doctor Profile
+            try {
+                const profileRes = await axios.get(`${API_URL}/api/doctors/profile`, config);
+                setDoctorProfile(profileRes.data);
+
+                // If specialization is missing, it's a placeholder profile
+                if (!profileRes.data.specialization) {
+                    setIsProfileMissing(true);
+                } else {
+                    setIsProfileMissing(false);
+                }
+            } catch (pError) {
+                console.error("Profile fetch error:", pError);
                 setIsProfileMissing(true);
-            } else {
-                console.error(error);
             }
+        } catch (error) {
+            console.error("Dashboard fetch error:", error);
+            // If the main fetch fails (likely due to missing profile record causing 500/404),
+            // we should still try to show the profile completion option
+            setIsProfileMissing(true);
         }
     };
 
@@ -145,6 +163,32 @@ function DoctorDashboard() {
         } catch (error) {
             console.error(error);
             alert('Failed to create profile');
+        }
+    };
+
+    const handleCertificateUpload = async (e) => {
+        if (!certificateFile) return alert('Please select a file first');
+        
+        const formData = new FormData();
+        formData.append('certificate', certificateFile);
+        
+        try {
+            setUploading(true);
+            const config = {
+                headers: { 
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+            const res = await axios.post(`${API_URL}/api/doctors/imr-certificate`, formData, config);
+            alert('Certificate Uploaded Successfully!');
+            setDoctorProfile(prev => ({ ...prev, imrCertificate: res.data.imrCertificate }));
+            setCertificateFile(null);
+        } catch (error) {
+            console.error(error);
+            alert('Failed to upload certificate');
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -279,13 +323,13 @@ function DoctorDashboard() {
 
     if (isProfileMissing) {
         return (
-            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-6">
-                <div className="bg-white p-10 rounded-3xl shadow-xl max-w-2xl w-full">
+            <div className="min-h-screen bg-apple-gray flex items-center justify-center p-4 sm:p-6">
+                <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl max-w-2xl w-full">
                     <h1 className="text-3xl font-semibold text-apple-text mb-4">Complete Your Profile</h1>
                     <p className="text-apple-subtext mb-8">Please provide your professional details to start accepting appointments.</p>
 
                         <form onSubmit={handleCreateProfile} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Doctor Registration Number</label>
                                     <input
@@ -295,6 +339,17 @@ function DoctorDashboard() {
                                         value={profileForm.registrationNumber}
                                         onChange={(e) => setProfileForm({ ...profileForm, registrationNumber: e.target.value })}
                                         required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Date of Birth</label>
+                                    <input
+                                        type="date"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                        value={profileForm.dateOfBirth}
+                                        onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
+                                        required
+                                        max={new Date().toISOString().split('T')[0]}
                                     />
                                 </div>
                                 <div>
@@ -343,16 +398,19 @@ function DoctorDashboard() {
                                         <option value="">Select Council</option>
                                         {[
                                             "Andhra Pradesh Medical Council", "Arunachal Pradesh Medical Council", "Assam Medical Council",
-                                            "Bihar Medical Council", "Chandigarh Medical Council", "Chhattisgarh Medical Council",
-                                            "Delhi Medical Council", "Goa Medical Council", "Gujarat Medical Council",
-                                            "Haryana Medical Council", "Himachal Pradesh Medical Council", "Jammu & Kashmir Medical Council",
-                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Kerala State Medical Council",
-                                            "Madhya Pradesh Medical Council", "Maharashtra Medical Council", "Manipur Medical Council",
-                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Nagaland Medical Council",
-                                            "Odisha Medical Council", "Pondicherry Medical Council", "Punjab Medical Council",
-                                            "Rajasthan Medical Council", "Sikkim Medical Council", "Tamil Nadu Medical Council",
-                                            "Telangana State Medical Council", "Tripura State Medical Council", "Uttar Pradesh Medical Council",
-                                            "Uttarakhand Medical Council", "West Bengal Medical Council"
+                                            "Bhopal Medical Council", "Bihar Medical Council", "Bombay Medical Council",
+                                            "Chandigarh Medical Council", "Chattisgarh Medical Council", "Delhi Medical Council",
+                                            "Goa Medical Council", "Gujarat Medical Council", "Haryana Medical Council",
+                                            "Himachal Pradesh Medical Council", "Hyderabad Medical Council", "Jammu & Kashmir Medical Council",
+                                            "Jharkhand Medical Council", "Karnataka Medical Council", "Madhya Pradesh Medical Council",
+                                            "Madras Medical Council", "Mahakoshal Medical Council", "Maharashtra Medical Council",
+                                            "Manipur Medical Council", "Medical Council of India", "Medical Council of Tanganyika",
+                                            "Meghalaya Medical Council", "Mizoram Medical Council", "Mysore Medical Council",
+                                            "Nagaland Medical Council", "Orissa Council of Medical Registration", "Pondicherry Medical Council",
+                                            "Punjab Medical Council", "Rajasthan Medical Council", "Sikkim Medical Council",
+                                            "Tamil Nadu Medical Council", "Telangana State Medical Council", "Travancore Cochin Medical Council, Trivandrum",
+                                            "Tripura State Medical Council", "Uttar Pradesh Medical Council", "Uttarakhand Medical Council",
+                                            "Vidharba Medical Council", "West Bengal Medical Council"
                                         ].map(council => <option key={council} value={council}>{council}</option>)}
                                     </select>
                                 </div>
@@ -432,6 +490,56 @@ function DoctorDashboard() {
                             />
                         </div>
 
+                        {/* IMR Certificate Upload */}
+                        <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50">
+                            <h3 className="text-lg font-semibold text-apple-text mb-4 flex items-center gap-2">
+                                <span className="p-2 bg-blue-100 rounded-lg">📜</span>
+                                IMR Certificate
+                            </h3>
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                <div className="flex-1 w-full">
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={(e) => setCertificateFile(e.target.files[0])}
+                                        className="block w-full text-sm text-gray-500
+                                            file:mr-4 file:py-2.5 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-apple-blue file:text-white
+                                            hover:file:bg-blue-600 transition-all cursor-pointer"
+                                    />
+                                    <p className="mt-2 text-xs text-apple-subtext ml-1">Upload PDF or Image (Max 5MB)</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleCertificateUpload}
+                                    disabled={!certificateFile || uploading}
+                                    className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+                                        !certificateFile || uploading 
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        : 'bg-apple-blue text-white hover:bg-blue-600 shadow-md transform hover:scale-105'
+                                    }`}
+                                >
+                                    {uploading ? 'Uploading...' : 'Upload'}
+                                </button>
+                            </div>
+                            {doctorProfile?.imrCertificate && (
+                                <div className="mt-4 flex items-center gap-2 text-apple-blue font-medium">
+                                    <span className="text-green-500">✅</span>
+                                    <span>Certificate Uploaded!</span>
+                                    <a 
+                                        href={doctorProfile.imrCertificate} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="ml-auto underline hover:text-blue-700 decoration-2 underline-offset-4"
+                                    >
+                                        View Current Certificate
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Bio</label>
                             <textarea
@@ -453,24 +561,35 @@ function DoctorDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8 relative">
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Doctor's Console</h1>
-                        <p className="text-apple-subtext text-lg">Welcome, Dr. {user && user.name}</p>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="text-center sm:text-left flex items-center gap-4">
+                        <div>
+                            <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Doctor's Console</h1>
+                            <p className="text-apple-subtext text-lg">Welcome, Dr. {user && user.name}</p>
+                        </div>
+                        {doctorProfile && (
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
+                                doctorProfile.status === 'approved' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                doctorProfile.status === 'rejected' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                'bg-amber-100 text-amber-700 border border-amber-200'
+                            }`}>
+                                {doctorProfile.status?.toUpperCase()}
+                            </span>
+                        )}
                     </div>
                     <button
                         onClick={onLogout}
-                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
                         Sign Out
                     </button>
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex space-x-4 border-b border-gray-200">
+                <div className="flex space-x-4 border-b border-gray-200 overflow-x-auto no-scrollbar">
                     <button
                         onClick={() => setActiveTab('queue')}
                         className={`pb-4 px-2 font-medium transition-colors relative ${activeTab === 'queue' ? 'text-apple-blue' : 'text-gray-400 hover:text-gray-600'}`}
@@ -488,9 +607,9 @@ function DoctorDashboard() {
                 </div>
 
                 {activeTab === 'queue' ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Today's Schedule (Left Column) */}
-                        <div className="lg:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 h-fit">
+                        <div className="md:col-span-1 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 h-fit">
                             <h2 className="text-xl font-semibold mb-6 text-apple-text">Today's Schedule</h2>
                             {appointments.length > 0 ? (
                                 <ul className="space-y-3">
@@ -512,9 +631,9 @@ function DoctorDashboard() {
                         </div>
 
                         {/* Queue Control (Right Column - Wider) */}
-                        <div className="lg:col-span-2 space-y-6">
+                        <div className="md:col-span-1 lg:col-span-2 space-y-6">
                             {/* Current Patient Interaction Card */}
-                            <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 text-center relative overflow-hidden">
+                            <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-lg border border-gray-100 text-center relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-32 bg-blue-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
                                 <div className="absolute bottom-0 left-0 p-32 bg-purple-50/50 rounded-full blur-3xl -ml-16 -mb-16"></div>
 
@@ -522,20 +641,20 @@ function DoctorDashboard() {
                                     <div className="relative z-10 space-y-6">
                                         <div>
                                             <p className="text-apple-subtext font-medium uppercase tracking-widest text-sm mb-2">Now Serving</p>
-                                            <h3 className="text-6xl font-bold text-apple-blue tracking-tighter mb-2">Token {currentPatient.token.displayToken || currentPatient.token.number}</h3>
-                                            <p className="text-2xl font-semibold text-apple-text">{currentPatient.patient?.user?.name}</p>
+                                            <h3 className="text-4xl sm:text-6xl font-bold text-apple-blue tracking-tighter mb-2">Token {currentPatient.token.displayToken || currentPatient.token.number}</h3>
+                                            <p className="text-xl sm:text-2xl font-semibold text-apple-text">{currentPatient.patient?.user?.name}</p>
                                         </div>
 
-                                        <div className="flex flex-wrap justify-center gap-4 mt-8">
+                                        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
                                             <button
                                                 onClick={() => setShowPrescriptionModal(true)}
-                                                className="bg-apple-text text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                                className="w-full sm:w-auto bg-apple-text text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                                             >
                                                 Write Prescription
                                             </button>
                                             <button
                                                 onClick={handleViewHistory}
-                                                className="bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all"
+                                                className="w-full sm:w-auto bg-white border-2 border-gray-100 text-apple-text px-8 py-3 rounded-full font-medium hover:bg-gray-50 transition-all"
                                             >
                                                 View History
                                             </button>
@@ -549,17 +668,17 @@ function DoctorDashboard() {
                                 )}
                             </div>
 
-                            {/* Queue Actions */}
-                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex justify-center gap-4">
+                             {/* Queue Actions */}
+                            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-center gap-4">
                                 <button
                                     onClick={callNextPatient}
-                                    className="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                    className="w-full sm:w-auto justify-center bg-green-500 text-white px-8 py-4 rounded-full font-bold text-base sm:text-lg hover:bg-green-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                                 >
                                     <span>📢</span> Call Next Patient
                                 </button>
                                 <button 
                                     onClick={finishCurrentPatient}
-                                    className="bg-blue-100 text-blue-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-200 transition-all flex items-center gap-2"
+                                    className="w-full sm:w-auto justify-center bg-blue-100 text-blue-600 px-8 py-4 rounded-full font-bold text-base sm:text-lg hover:bg-blue-200 transition-all flex items-center gap-2"
                                 >
                                     <span>✅</span> Finish Serving
                                 </button>
@@ -567,7 +686,7 @@ function DoctorDashboard() {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
                         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                             <div className="flex items-center gap-4">
                                 <h2 className="text-xl font-semibold text-apple-text">Appointments History</h2>
@@ -669,7 +788,7 @@ function DoctorDashboard() {
                 {/* Prescription Modal */}
                 {showPrescriptionModal && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50 p-4">
-                        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                             <h2 className="text-2xl font-semibold mb-6 text-apple-text">Rx: New Prescription</h2>
                             <form onSubmit={submitPrescription} className="space-y-6">
                                 <div>
@@ -687,12 +806,16 @@ function DoctorDashboard() {
                                 <div>
                                     <label className="block text-sm font-medium text-apple-subtext mb-2 ml-1">Medicines</label>
                                     {prescriptionData.medicines.map((med, index) => (
-                                        <div key={index} className="flex flex-wrap gap-3 mb-3 p-4 bg-apple-gray rounded-2xl border border-gray-100">
-                                            <input type="text" placeholder="Drug Name" className="flex-grow min-w-[150px] p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.name} onChange={(e) => handlePrescriptionChange(index, 'name', e.target.value)} required />
-                                            <input type="text" placeholder="Dosage" className="w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.dosage} onChange={(e) => handlePrescriptionChange(index, 'dosage', e.target.value)} required />
-                                            <input type="text" placeholder="Freq (1-0-1)" className="w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.frequency} onChange={(e) => handlePrescriptionChange(index, 'frequency', e.target.value)} required />
-                                            <input type="text" placeholder="Duration" className="w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.duration} onChange={(e) => handlePrescriptionChange(index, 'duration', e.target.value)} required />
-                                            <input type="text" placeholder="Instructions" className="flex-grow min-w-[150px] p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.instructions} onChange={(e) => handlePrescriptionChange(index, 'instructions', e.target.value)} />
+                                        <div key={index} className="flex flex-col sm:flex-row flex-wrap gap-3 mb-3 p-4 bg-apple-gray rounded-2xl border border-gray-100">
+                                            <input type="text" placeholder="Drug Name" className="flex-grow min-w-[200px] p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.name} onChange={(e) => handlePrescriptionChange(index, 'name', e.target.value)} required />
+                                            <div className="flex gap-3 flex-grow sm:flex-grow-0">
+                                                <input type="text" placeholder="Dosage" className="w-full sm:w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.dosage} onChange={(e) => handlePrescriptionChange(index, 'dosage', e.target.value)} required />
+                                                <input type="text" placeholder="Freq" className="w-full sm:w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.frequency} onChange={(e) => handlePrescriptionChange(index, 'frequency', e.target.value)} required />
+                                            </div>
+                                            <div className="flex gap-3 flex-grow sm:flex-grow-0">
+                                                <input type="text" placeholder="Duration" className="w-full sm:w-24 p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.duration} onChange={(e) => handlePrescriptionChange(index, 'duration', e.target.value)} required />
+                                                <input type="text" placeholder="Instructions" className="flex-grow min-w-[150px] p-2 bg-transparent border-b border-gray-300 focus:border-apple-blue focus:outline-none" value={med.instructions} onChange={(e) => handlePrescriptionChange(index, 'instructions', e.target.value)} />
+                                            </div>
                                         </div>
                                     ))}
                                     <button type="button" onClick={addMedicineField} className="text-apple-blue font-medium mt-2 hover:underline ml-1">+ Add Another Medicine</button>
@@ -721,7 +844,7 @@ function DoctorDashboard() {
                 {/* Medical History Modal */}
                 {showHistoryModal && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50 p-4">
-                        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                             <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-semibold text-apple-text">Medical History</h2>

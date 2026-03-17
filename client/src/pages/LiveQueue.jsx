@@ -41,16 +41,16 @@ function LiveQueue() {
     };
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8">
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8">
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 text-center sm:text-left">
                     <div>
-                        <h1 className="text-3xl font-semibold text-apple-text">Live Hospital Board</h1>
+                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Live Hospital Board</h1>
                         <p className="text-apple-subtext">Real-time status of all departments</p>
                     </div>
                     <button
                         onClick={() => navigate('/hospital-dashboard')}
-                        className="bg-white border border-gray-200 px-6 py-2 rounded-full text-apple-text hover:bg-gray-50 transition-colors font-medium shadow-sm"
+                        className="w-full sm:w-auto bg-white border border-gray-200 px-6 py-2 rounded-full text-apple-text hover:bg-gray-50 transition-colors font-medium shadow-sm"
                     >
                         ← Back to Dashboard
                     </button>
@@ -67,11 +67,11 @@ function LiveQueue() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">In Queue</th>
-                                        <th className="p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Patient</th>
-                                        <th className="p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Doctor</th>
-                                        <th className="p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Status</th>
-                                        <th className="p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Time</th>
+                                        <th className="p-4 sm:p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">In Queue</th>
+                                        <th className="p-4 sm:p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Patient</th>
+                                        <th className="p-4 sm:p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Doctor</th>
+                                        <th className="p-4 sm:p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Status</th>
+                                        <th className="p-4 sm:p-6 font-semibold text-apple-subtext text-sm uppercase tracking-wide">Time</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -101,24 +101,24 @@ function LiveQueue() {
                                                 {/* Patient Rows */}
                                                 {group.apps.map((app) => (
                                                     <tr key={app._id} className="border-b border-gray-50 hover:bg-apple-gray/30 transition-colors">
-                                                        <td className="p-6 pl-10">
+                                                        <td className="p-4 sm:p-6 sm:pl-10">
                                                             <div className="flex flex-col">
-                                                                <span className="text-2xl font-black text-apple-blue tracking-tighter leading-none">#{app.token?.displayToken || app.token?.number}</span>
+                                                                <span className={`text-2xl font-black text-apple-blue tracking-tighter leading-none ${app.token?.status === 'serving' ? 'animate-blink' : ''}`}>#{app.token?.displayToken || app.token?.number}</span>
                                                                 <span className="text-[10px] text-apple-subtext font-bold uppercase mt-1">Token Number</span>
                                                             </div>
                                                         </td>
-                                                        <td className="p-6">
+                                                        <td className="p-4 sm:p-6">
                                                             <p className="font-bold text-apple-text">{app.patient?.user?.name || 'Anonymous'}</p>
                                                             <p className="text-[10px] text-apple-subtext font-medium">Patient</p>
                                                         </td>
-                                                        <td className="p-6">
+                                                        <td className="p-4 sm:p-6">
                                                             <div className="flex flex-col">
-                                                                <span className="text-apple-text font-bold">OPD {app.doctor?.clinicName || 'General'}</span>
+                                                                <span className="text-apple-text font-bold text-sm sm:text-base">OPD {app.doctor?.clinicName || 'General'}</span>
                                                                 <span className="text-[10px] text-apple-subtext font-bold uppercase">Department</span>
                                                             </div>
                                                         </td>
-                                                        <td className="p-6">
-                                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${
+                                                        <td className="p-4 sm:p-6">
+                                                            <span className={`px-3 sm:px-4 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-sm border ${
                                                                 app.token?.status === 'waiting' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                                                 app.token?.status === 'serving' ? 'bg-green-500 text-white border-green-600 animate-pulse' :
                                                                 app.token?.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
@@ -127,7 +127,7 @@ function LiveQueue() {
                                                                 {app.token?.status === 'serving' ? '● Serving Now' : app.token?.status}
                                                             </span>
                                                         </td>
-                                                        <td className="p-6 text-apple-subtext font-bold text-sm">
+                                                        <td className="p-4 sm:p-6 text-apple-subtext font-bold text-sm">
                                                             {new Date(app.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </td>
                                                     </tr>

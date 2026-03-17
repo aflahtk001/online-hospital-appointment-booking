@@ -1,21 +1,39 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const logFile = path.join(__dirname, '..', 'verification.log');
+
+function logTo(msg) {
+    const timestamp = new Date().toISOString();
+    const entry = `[${timestamp}] ${msg}\n`;
+    console.log(msg);
+    fs.appendFileSync(logFile, entry);
+}
+
+const agent = new https.Agent({
+    rejectUnauthorized: false
+});
 
 /**
  * Fetches doctor registry data from NMC using their internal JSON API
  * @param {string} registrationNumber 
  * @returns {Promise<Object>} Extracted registry data
  */
-async function fetchDoctorRegistryData(registrationNumber) {
+async function fetchDoctorRegistryData(registrationNumber, councilName = null) {
     const sessionUrl = "https://www.nmc.org.in/information-desk/indian-medical-register/";
     const apiUrl = "https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor";
     
     try {
-        // 1. Initialize session to get cookies
+        logTo(`[VerifService] Initializing session: ${sessionUrl}`);
         const sessionResponse = await axios.get(sessionUrl, {
             headers: { 'User-Agent': 'Mozilla/5.0' },
-            timeout: 10000
+            timeout: 10000,
+            httpsAgent: agent
         });
+        logTo(`[VerifService] Session init status: ${sessionResponse.status}`);
         const cookies = sessionResponse.headers['set-cookie'];
 
         // 2. Call the actual DataTables API used by NMC
@@ -27,6 +45,7 @@ async function fetchDoctorRegistryData(registrationNumber) {
         searchParams.append('registrationNo', registrationNumber);
         // Add other required boilerplate params if needed, but registrationNo is the key
 
+        logTo(`[VerifService] Calling API: ${apiUrl} for RegNo: ${registrationNumber}`);
         const apiResponse = await axios.get(`${apiUrl}&registrationNo=${registrationNumber}&draw=1&start=0&length=10`, {
             headers: {
                 'Referer': sessionUrl,
@@ -34,21 +53,87 @@ async function fetchDoctorRegistryData(registrationNumber) {
                 'User-Agent': 'Mozilla/5.0',
                 'Cookie': cookies ? cookies.join('; ') : ''
             },
-            timeout: 15000
+            timeout: 15000,
+            httpsAgent: agent
         });
+        logTo(`[VerifService] API response status: ${apiResponse.status}`);
 
         if (apiResponse.data && apiResponse.data.data && apiResponse.data.data.length > 0) {
-            const doc = apiResponse.data.data[0];
+            let docRow = apiResponse.data.data[0];
+            
+            // If councilName is provided, find the matching row
+            if (councilName) {
+                const matchingRow = apiResponse.data.data.find(row => 
+                    (row[3] || "").toLowerCase().trim() === councilName.toLowerCase().trim()
+                );
+                if (matchingRow) {
+                    docRow = matchingRow;
+                    logTo(`[VerifService] Found exact match for council: ${councilName}`);
+                } else {
+                    logTo(`[VerifService] No exact match for council ${councilName}, falling back to top result`);
+                }
+            }
+
+            // Extract doctorId from the "View" link (Index 6)
+            const viewLink = docRow[6] || '';
+            const idMatch = viewLink.match(/openDoctorDetailsnew\('(\d+)'/);
+            const doctorId = idMatch ? idMatch[1] : null;
+
+            if (doctorId) {
+                logTo(`[VerifService] Fetching full details for doctorId: ${doctorId}`);
+                const detailUrl = "https://www.nmc.org.in/MCIRest/open/getDataFromService?service=getDoctorDetailsByIdImrExt";
+                
+                const detailResponse = await axios.post(detailUrl, 
+                    { doctorId: doctorId, regdNoValue: registrationNumber },
+                    {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cookie': cookies ? cookies.join('; ') : ''
+                        },
+                        httpsAgent: agent,
+                        timeout: 10000
+                    }
+                );
+
+                if (detailResponse.data) {
+                    const d = detailResponse.data;
+                    
+                    // Combine qualifications
+                    let qualifications = [d.doctorDegree];
+                    if (d.addlqual1 && d.addlqual1.trim()) qualifications.push(d.addlqual1.trim());
+                    if (d.addlqual2 && d.addlqual2.trim()) qualifications.push(d.addlqual2.trim());
+                    if (d.addlqual3 && d.addlqual3.trim()) qualifications.push(d.addlqual3.trim());
+                    
+                    const qualString = qualifications.filter(q => q && q.length > 1).join(', ');
+
+                    return {
+                        name: d.firstName || 'Unknown',
+                        dateOfBirth: d.birthDateStr || 'N/A',
+                        qualification: qualString || 'MBBS',
+                        council: d.smcName || 'N/A'
+                    };
+                }
+            }
+
+            // Fallback to basic row data if detail fetch fails
+            const $name = cheerio.load(docRow[4] || '');
             return {
-                name: doc.doctorName || doc.name,
-                qualification: doc.qualification || 'MBBS',
-                council: doc.medicalCouncil || doc.council
+                name: $name.text().trim() || 'Unknown',
+                dateOfBirth: 'Detail fetch failed',
+                qualification: 'MBBS',
+                council: docRow[3] || 'N/A'
             };
         }
         
+        logTo(`[VerifService] No match found for RegNo: ${registrationNumber}`);
         return null; // No match found
     } catch (error) {
-        console.error("NMC API Error:", error.message);
+        logTo(`[VerifService] NMC API Error: ${error.message}`);
+        if (error.response) {
+            logTo(`[VerifService] Error Response: ${error.response.status} ${JSON.stringify(error.response.data)}`);
+        }
         throw new Error("NMC Registry API unreachable.");
     }
 }
@@ -91,8 +176,24 @@ function calculateTrustScore(input, registry) {
         score += 10;
     }
 
+    // Date of Birth Match (Bonus points if DOB matches)
+    if (input.dateOfBirth && registry.dateOfBirth) {
+        // Handle potential format differences (registry usually returns DD/MM/YYYY)
+        const normalizeDate = (d) => {
+            if (!d) return "";
+            if (d.includes('/')) return d; // Already DD/MM/YYYY
+            const dateObj = new Date(d);
+            if (isNaN(dateObj)) return d;
+            return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        };
+        
+        if (normalizeDate(input.dateOfBirth) === registry.dateOfBirth) {
+            score += 10;
+        }
+    }
+
     // Professional Status / Bonus
-    score += 10;
+    score += 5; // Reduced from 10 to keep total balance
 
     return Math.min(score, 100);
 }

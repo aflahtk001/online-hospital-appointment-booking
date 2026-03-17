@@ -1,0 +1,97 @@
+[2026-03-17T08:19:18.748Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-17T08:19:19.015Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:19:23.464Z] [VerifService] Session init status: 200
+[2026-03-17T08:19:23.488Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-17T08:19:28.513Z] [VerifService] API response status: 200
+[2026-03-17T08:19:28.515Z] [VerifService] Found match: Minhas Aneeta Mrs.
+[2026-03-17T08:28:44.950Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-17T08:28:45.181Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:28:46.887Z] [VerifService] Session init status: 200
+[2026-03-17T08:28:46.889Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-17T08:28:50.790Z] [VerifService] API response status: 200
+[2026-03-17T08:28:50.792Z] [VerifService] Found match: Minhas Aneeta Mrs.
+[2026-03-17T08:29:47.264Z] [DoctorController] Checking trust score for doctor ID: 69b52a427711313f517ecfb9
+[2026-03-17T08:29:47.497Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:29:49.182Z] [VerifService] Session init status: 200
+[2026-03-17T08:29:49.183Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T08:29:53.118Z] [VerifService] API response status: 200
+[2026-03-17T08:29:53.119Z] [VerifService] Found match: Sodhi Mrs. Gurcharan Kaur
+[2026-03-17T08:36:11.152Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:36:13.052Z] [VerifService] Session init status: 200
+[2026-03-17T08:36:13.054Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T08:36:18.128Z] [VerifService] API response status: 200
+[2026-03-17T08:36:18.144Z] [VerifService] Found match: Sodhi Mrs. Gurcharan Kaur
+[2026-03-17T08:36:48.311Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-17T08:36:48.517Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:36:50.754Z] [VerifService] Session init status: 200
+[2026-03-17T08:36:50.777Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-17T08:36:54.712Z] [VerifService] API response status: 200
+[2026-03-17T08:36:54.728Z] [VerifService] Found match: Minhas Aneeta Mrs.
+[2026-03-17T08:45:09.878Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T08:45:13.761Z] [VerifService] Session init status: 200
+[2026-03-17T08:45:13.762Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T08:45:17.748Z] [VerifService] API response status: 200
+[2026-03-17T08:45:17.764Z] [VerifService] Found match: Sodhi Mrs. Gurcharan Kaur
+[2026-03-17T09:00:47.724Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:01:03.593Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:01:06.037Z] [VerifService] Session init status: 200
+[2026-03-17T09:01:06.039Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T09:01:10.547Z] [VerifService] API response status: 200
+[2026-03-17T09:01:10.549Z] [VerifService] Fetching full details for doctorId: 629042
+[2026-03-17T09:01:59.007Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-17T09:01:59.256Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:02:01.364Z] [VerifService] Session init status: 200
+[2026-03-17T09:02:01.365Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-17T09:02:06.170Z] [VerifService] API response status: 200
+[2026-03-17T09:02:06.171Z] [VerifService] Fetching full details for doctorId: 40430
+[2026-03-17T09:15:26.004Z] [DoctorController] Checking trust score for doctor ID: 69b91b99d669e4dc381641b0
+[2026-03-17T09:15:26.350Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:15:29.296Z] [VerifService] Session init status: 200
+[2026-03-17T09:15:29.297Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 22682
+[2026-03-17T09:15:38.426Z] [VerifService] API response status: 200
+[2026-03-17T09:15:38.428Z] [VerifService] Fetching full details for doctorId: 286724
+[2026-03-17T09:21:10.896Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:21:12.998Z] [VerifService] Session init status: 200
+[2026-03-17T09:21:13.001Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T09:21:22.051Z] [VerifService] API response status: 200
+[2026-03-17T09:21:22.052Z] [VerifService] Found exact match for council: Bombay Medical Council
+[2026-03-17T09:21:22.053Z] [VerifService] Fetching full details for doctorId: 629042
+[2026-03-17T09:22:06.686Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-17T09:22:06.907Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:22:12.757Z] [VerifService] Session init status: 200
+[2026-03-17T09:22:12.759Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-17T09:22:21.485Z] [VerifService] API response status: 200
+[2026-03-17T09:22:21.487Z] [VerifService] Found exact match for council: Travancore Cochin Medical Council, Trivandrum
+[2026-03-17T09:22:21.490Z] [VerifService] Fetching full details for doctorId: 12515412
+[2026-03-17T09:23:47.084Z] [DoctorController] Checking trust score for doctor ID: 69b52a427711313f517ecfb9
+[2026-03-17T09:23:47.287Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:23:50.792Z] [VerifService] Session init status: 200
+[2026-03-17T09:23:50.793Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T09:23:58.663Z] [VerifService] API response status: 200
+[2026-03-17T09:23:58.665Z] [VerifService] Fetching full details for doctorId: 629042
+[2026-03-17T09:47:22.986Z] [DoctorController] Checking trust score for doctor ID: 69b92309e4fe91aa9a55f8c2
+[2026-03-17T09:47:23.206Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T09:47:26.246Z] [VerifService] Session init status: 200
+[2026-03-17T09:47:26.247Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 1004
+[2026-03-17T09:47:36.717Z] [VerifService] API response status: 200
+[2026-03-17T09:47:36.719Z] [VerifService] Found exact match for council: Travancore Cochin Medical Council, Trivandrum
+[2026-03-17T09:47:36.720Z] [VerifService] Fetching full details for doctorId: 584244
+[2026-03-17T10:38:45.742Z] [DoctorController] Checking trust score for doctor ID: 69b92eb11ef969a68bf80751
+[2026-03-17T10:38:45.905Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T10:38:49.156Z] [VerifService] Session init status: 200
+[2026-03-17T10:38:49.157Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: kb
+[2026-03-17T10:38:53.400Z] [VerifService] API response status: 200
+[2026-03-17T10:38:53.401Z] [VerifService] No match found for RegNo: kb
+[2026-03-17T10:39:14.636Z] [DoctorController] Checking trust score for doctor ID: 69b92309e4fe91aa9a55f8c2
+[2026-03-17T10:39:14.795Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T10:39:17.444Z] [VerifService] Session init status: 200
+[2026-03-17T10:39:17.445Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 1004
+[2026-03-17T10:39:21.696Z] [VerifService] API response status: 200
+[2026-03-17T10:39:21.697Z] [VerifService] Found exact match for council: Travancore Cochin Medical Council, Trivandrum
+[2026-03-17T10:39:21.699Z] [VerifService] Fetching full details for doctorId: 584244
+[2026-03-17T10:39:38.262Z] [DoctorController] Checking trust score for doctor ID: 69b52a427711313f517ecfb9
+[2026-03-17T10:39:38.408Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-17T10:39:40.949Z] [VerifService] Session init status: 200
+[2026-03-17T10:39:40.950Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-17T10:39:45.889Z] [VerifService] API response status: 200
+[2026-03-17T10:39:45.891Z] [VerifService] Fetching full details for doctorId: 629042

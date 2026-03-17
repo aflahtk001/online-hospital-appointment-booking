@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats } = require('../controllers/hospitalController');
+const { 
+    registerHospital, 
+    getHospitals, 
+    approveHospital, 
+    rejectHospital, 
+    getPendingHospitals, 
+    getHospitalDetails, 
+    getHospitalDoctors, 
+    addDoctorToHospital, 
+    getHospitalStats, 
+    getHospitalsByStatus 
+} = require('../controllers/hospitalController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -11,7 +22,10 @@ router.route('/:id/approve')
     .put(protect, authorize('admin', 'super_admin'), approveHospital);
 
 router.route('/:id/reject')
-    .delete(protect, authorize('admin', 'super_admin'), rejectHospital);
+    .put(protect, authorize('admin', 'super_admin'), rejectHospital);
+
+router.route('/admin/list')
+    .get(protect, authorize('admin', 'super_admin'), getHospitalsByStatus);
 
 router.route('/pending')
     .get(protect, authorize('admin', 'super_admin'), getPendingHospitals);

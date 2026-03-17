@@ -62,8 +62,19 @@ const bookAppointment = async (req, res) => {
 // @access  Private (Doctor)
 const getDoctorAppointments = async (req, res) => {
     try {
-        const doctor = await Doctor.findOne({ user: req.user.id });
-        if (!doctor) return res.status(404).json({ message: 'Doctor profile not found' });
+        let doctor = await Doctor.findOne({ user: req.user.id });
+        if (!doctor) {
+            // Auto-create profile if missing and user is a doctor
+            if (req.user.role === 'doctor') {
+                doctor = new Doctor({
+                    user: req.user.id,
+                    status: 'pending'
+                });
+                await doctor.save();
+            } else {
+                return res.status(404).json({ message: 'Doctor profile not found' });
+            }
+        }
 
         // Fix: Use IST (Asia/Kolkata) for "Today" to match user timezone
         const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });

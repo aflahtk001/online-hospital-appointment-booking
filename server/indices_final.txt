@@ -1,0 +1,7 @@
+IDX_0: 1
+IDX_1: 1960
+IDX_2: 12345
+IDX_3: Bombay Medical Council
+IDX_4: Sodhi Mrs. Gurcharan Kaur
+IDX_5: null
+IDX_6: <a href="javascript:void(0);" onclick="openDoctorDetailsnew('629042', '12345')">View</a>

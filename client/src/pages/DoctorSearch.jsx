@@ -100,16 +100,16 @@ function DoctorSearch() {
     };
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8 relative">
-            <div className="max-w-7xl mx-auto space-y-8">
-                <div className="text-center py-10">
-                    <h1 className="text-4xl font-semibold text-apple-text tracking-tight mb-4">Find the perfect specialist.</h1>
-                    <p className="text-xl text-apple-subtext font-light">Book appointments with top-rated doctors near you.</p>
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
+            <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+                <div className="text-center py-6 sm:py-10">
+                    <h1 className="text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight mb-4">Find the perfect specialist.</h1>
+                    <p className="text-lg sm:text-xl text-apple-subtext font-light">Book appointments with top-rated doctors near you.</p>
                 </div>
 
                 {/* Search Filters */}
                 <div className="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 max-w-5xl mx-auto">
-                    <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="relative">
                             <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
                             <input
@@ -144,12 +144,12 @@ function DoctorSearch() {
                 </div>
 
                 {/* Results List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {loading ? (
                         <p className="col-span-full text-center text-apple-subtext py-20">Finding the best matches...</p>
                     ) : doctors.length > 0 ? (
                         doctors.map((doctor) => (
-                            <div key={doctor._id} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+                            <div key={doctor._id} className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-2xl text-apple-blue font-bold">
                                         {doctor.user?.name?.charAt(0) || 'D'}
@@ -195,7 +195,7 @@ function DoctorSearch() {
                 {/* Booking Modal */}
                 {selectedDoctor && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
-                        <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full transform transition-all scale-100">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-sm w-full transform transition-all scale-100">
                             <h2 className="text-2xl font-bold mb-2 text-apple-text">Book Appointment</h2>
                             <p className="text-apple-subtext mb-6">with {selectedDoctor.user?.name}</p>
 
@@ -208,17 +208,17 @@ function DoctorSearch() {
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 />
                             </div>
-                            <div className="flex justify-end gap-3">
+                            <div className="flex flex-col sm:flex-row justify-end gap-3">
                                 <button
                                     onClick={() => setSelectedDoctor(null)}
-                                    className="bg-gray-100 text-apple-subtext px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
+                                    className="w-full sm:w-auto bg-gray-100 text-apple-subtext px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={confirmBooking}
                                     disabled={bookLoading}
-                                    className="bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="w-full sm:w-auto bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {bookLoading ? 'Booking...' : 'Confirm'}
                                 </button>

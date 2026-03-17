@@ -12,9 +12,10 @@ function AdminDashboard() {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
 
-    const [pendingDoctors, setPendingDoctors] = useState([]);
-    const [pendingHospitals, setPendingHospitals] = useState([]);
-    const [stats, setStats] = useState({ totalUsers: 0, totalAppointments: 0 });
+    const [activeTab, setActiveTab] = useState('pending');
+    const [doctors, setDoctors] = useState([]);
+    const [hospitals, setHospitals] = useState([]);
+    const [stats, setStats] = useState({ totalUsers: 0, totalAppointments: 0, totalDoctors: 0, totalHospitals: 0 });
     const [selectedItem, setSelectedItem] = useState(null);
     const [detailType, setDetailType] = useState(null);
     const [verificationLoading, setVerificationLoading] = useState(false);
@@ -30,30 +31,31 @@ function AdminDashboard() {
         if (!user || user.role !== 'super_admin') {
             navigate('/login');
         } else {
-            fetchPendingData();
+            fetchAllData();
         }
-    }, [user, navigate]);
+    }, [user, navigate, activeTab]);
 
-    const fetchPendingData = async () => {
+    const fetchAllData = async () => {
         try {
             const config = {
                 headers: { Authorization: `Bearer ${user.token}` },
             };
             const API = API_URL;
-            // 1. Fetch Pending Doctors
-            const docRes = await axios.get(`${API}/api/doctors/pending`, config);
-            setPendingDoctors(docRes.data);
+            
+            // 1. Fetch Doctors by Status
+            const docRes = await axios.get(`${API}/api/doctors/admin/list?status=${activeTab}`, config);
+            setDoctors(docRes.data);
 
-            // 2. Fetch Pending Hospitals
-            const hospRes = await axios.get(`${API}/api/hospitals/pending`, config);
-            setPendingHospitals(hospRes.data);
+            // 2. Fetch Hospitals by Status
+            const hospRes = await axios.get(`${API}/api/hospitals/admin/list?status=${activeTab}`, config);
+            setHospitals(hospRes.data);
 
             // 3. Fetch System Stats
             const statsRes = await axios.get(`${API}/api/admin/stats`, config);
             setStats(statsRes.data);
 
         } catch (error) {
-            console.error("Failed to fetch pending data:", error);
+            console.error("Failed to fetch dashboard data:", error);
         }
     };
 
@@ -61,7 +63,7 @@ function AdminDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             await axios.put(`${API_URL}/api/doctors/${id}/approve`, {}, config);
-            fetchPendingData();
+            fetchAllData();
         } catch (error) {
             console.error(error);
         }
@@ -71,7 +73,7 @@ function AdminDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             await axios.put(`${API_URL}/api/doctors/${id}/reject`, {}, config);
-            fetchPendingData();
+            fetchAllData();
         } catch (error) {
             console.error(error);
         }
@@ -81,7 +83,7 @@ function AdminDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             await axios.put(`${API_URL}/api/hospitals/${id}/approve`, {}, config);
-            fetchPendingData();
+            fetchAllData();
         } catch (error) {
             console.error(error);
         }
@@ -90,8 +92,8 @@ function AdminDashboard() {
     const handleRejectHospital = async (id) => {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            await axios.delete(`${API_URL}/api/hospitals/${id}/reject`, config);
-            fetchPendingData();
+            await axios.put(`${API_URL}/api/hospitals/${id}/reject`, {}, config);
+            fetchAllData();
         } catch (error) {
             console.error(error);
         }
@@ -106,7 +108,6 @@ function AdminDashboard() {
             setTrustScoreData(res.data);
         } catch (error) {
             console.error("Verification failed:", error);
-            // Even on error, we might have simulated data from the server or we show 0
             setTrustScoreData({
                 status: 'error',
                 trust_score: 0,
@@ -119,109 +120,130 @@ function AdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8">
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="text-center sm:text-left">
                         <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
                         <p className="text-apple-subtext text-lg">Overview for {user && user.name}</p>
                     </div>
                     <button
                         onClick={onLogout}
-                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
                         Sign Out
                     </button>
                 </div>
 
                 {/* System Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard title="Total Users" value={stats.totalUsers} />
                     <StatCard title="Appointments" value={stats.totalAppointments} />
                     <StatCard title="Active Doctors" value={stats.totalDoctors} />
-                    <StatCard title="Hospitals" value={stats.totalHospitals} />
+                    <StatCard title="Active Hospitals" value={stats.totalHospitals} />
+                </div>
+
+                {/* Tabs */}
+                <div className="flex justify-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100 max-w-md mx-auto">
+                    {['pending', 'approved', 'rejected'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`flex-1 px-6 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${activeTab === tab ? 'bg-apple-blue text-white shadow-md' : 'text-apple-subtext hover:bg-gray-50'}`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Pending Doctors */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                        <h2 className="text-2xl font-semibold mb-6 text-apple-text">Pending Doctors</h2>
-                        {pendingDoctors.length > 0 ? (
+                    {/* Doctors List */}
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h2 className="text-2xl font-semibold mb-6 text-apple-text capitalize">{activeTab} Doctors</h2>
+                        {doctors.length > 0 ? (
                             <ul className="space-y-4">
-                                {pendingDoctors.map(doc => (
-                                    <li key={doc._id} className="flex justify-between items-center p-4 bg-apple-gray/50 rounded-2xl">
-                                        <div>
+                                {doctors.map(doc => (
+                                    <li key={doc._id} className="flex flex-col sm:flex-row justify-between items-center p-4 bg-apple-gray/50 rounded-2xl gap-4">
+                                        <div className="text-center sm:text-left">
                                             <p className="font-semibold text-apple-text text-lg">{doc.user?.name || 'Unknown'}</p>
                                             <p className="text-apple-subtext text-sm">{doc.specialization}</p>
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex w-full sm:w-auto gap-2">
                                             <button 
                                                 onClick={() => { setSelectedItem(doc); setDetailType('doctor'); }} 
-                                                className="p-2 text-apple-blue hover:bg-blue-50 rounded-xl transition-all group"
+                                                className="flex-1 sm:flex-none p-2 text-apple-blue hover:bg-blue-50 rounded-xl transition-all group flex items-center justify-center"
                                                 title="View Details"
                                             >
                                                 <HiEye className="text-xl" />
                                             </button>
-                                            <button 
-                                                onClick={() => handleApproveDoctor(doc._id)} 
-                                                className="flex items-center gap-1.5 bg-green-500/10 text-green-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-500 hover:text-white transition-all shadow-sm"
-                                            >
-                                                <HiCheck className="text-lg" />
-                                                Approve
-                                            </button>
-                                            <button 
-                                                onClick={() => handleRejectDoctor(doc._id)} 
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                title="Reject"
-                                            >
-                                                <HiX className="text-xl" />
-                                            </button>
+                                            {activeTab !== 'approved' && (
+                                                <button 
+                                                    onClick={() => handleApproveDoctor(doc._id)} 
+                                                    className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 bg-green-500/10 text-green-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-500 hover:text-white transition-all shadow-sm"
+                                                >
+                                                    <HiCheck className="text-lg" />
+                                                    Approve
+                                                </button>
+                                            )}
+                                            {activeTab !== 'rejected' && (
+                                                <button 
+                                                    onClick={() => handleRejectDoctor(doc._id)} 
+                                                    className="flex-1 sm:flex-none p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center justify-center"
+                                                    title="Reject"
+                                                >
+                                                    <HiX className="text-xl" />
+                                                </button>
+                                            )}
                                         </div>
                                     </li>
                                 ))}
                             </ul>
-                        ) : <p className="text-apple-subtext italic">No pending doctor approvals.</p>}
+                        ) : <p className="text-apple-subtext italic">No {activeTab} doctors found.</p>}
                     </div>
 
-                    {/* Pending Hospitals */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                        <h2 className="text-2xl font-semibold mb-6 text-apple-text">Pending Hospitals</h2>
-                        {pendingHospitals.length > 0 ? (
+                    {/* Hospitals List */}
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h2 className="text-2xl font-semibold mb-6 text-apple-text capitalize">{activeTab} Hospitals</h2>
+                        {hospitals.length > 0 ? (
                             <ul className="space-y-4">
-                                {pendingHospitals.map(hosp => (
-                                    <li key={hosp._id} className="flex justify-between items-center p-4 bg-apple-gray/50 rounded-2xl">
-                                        <div>
+                                {hospitals.map(hosp => (
+                                    <li key={hosp._id} className="flex flex-col sm:flex-row justify-between items-center p-4 bg-apple-gray/50 rounded-2xl gap-4">
+                                        <div className="text-center sm:text-left">
                                             <p className="font-semibold text-apple-text text-lg">{hosp.name}</p>
-                                            <p className="text-apple-subtext text-sm">Waitlist Application</p>
+                                            <p className="text-apple-subtext text-sm">{hosp.registrationNumber || 'Registration Pending'}</p>
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex w-full sm:w-auto gap-2">
                                             <button 
                                                 onClick={() => { setSelectedItem(hosp); setDetailType('hospital'); }} 
-                                                className="p-2 text-apple-blue hover:bg-blue-50 rounded-xl transition-all"
+                                                className="flex-1 sm:flex-none p-2 text-apple-blue hover:bg-blue-50 rounded-xl transition-all flex items-center justify-center"
                                                 title="View Details"
                                             >
                                                 <HiEye className="text-xl" />
                                             </button>
-                                            <button 
-                                                onClick={() => handleApproveHospital(hosp._id)} 
-                                                className="flex items-center gap-1.5 bg-green-500/10 text-green-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-500 hover:text-white transition-all shadow-sm"
-                                            >
-                                                <HiCheck className="text-lg" />
-                                                Approve
-                                            </button>
-                                            <button 
-                                                onClick={() => handleRejectHospital(hosp._id)} 
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                title="Reject"
-                                            >
-                                                <HiX className="text-xl" />
-                                            </button>
+                                            {activeTab !== 'approved' && (
+                                                <button 
+                                                    onClick={() => handleApproveHospital(hosp._id)} 
+                                                    className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 bg-green-500/10 text-green-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-500 hover:text-white transition-all shadow-sm"
+                                                >
+                                                    <HiCheck className="text-lg" />
+                                                    Approve
+                                                </button>
+                                            )}
+                                            {activeTab !== 'rejected' && (
+                                                <button 
+                                                    onClick={() => handleRejectHospital(hosp._id)} 
+                                                    className="flex-1 sm:flex-none p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center justify-center"
+                                                    title="Reject"
+                                                >
+                                                    <HiX className="text-xl" />
+                                                </button>
+                                            )}
                                         </div>
                                     </li>
                                 ))}
                             </ul>
-                        ) : <p className="text-apple-subtext italic">No pending hospital approvals.</p>}
+                        ) : <p className="text-apple-subtext italic">No {activeTab} hospitals found.</p>}
                     </div>
                 </div>
             </div>
@@ -229,7 +251,7 @@ function AdminDashboard() {
             {/* Detail Modal */}
             {selectedItem && (
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all">
                         <div className="flex justify-between items-center mb-6 border-b pb-4">
                             <h2 className="text-2xl font-bold text-apple-text">
                                 {detailType === 'doctor' ? 'Doctor Profile Details' : 'Hospital Facility Details'}
@@ -241,7 +263,7 @@ function AdminDashboard() {
 
                         <div className="space-y-6">
                             {detailType === 'doctor' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <DetailField label="Full Name" value={selectedItem.user?.name} />
                                     <DetailField label="Email" value={selectedItem.user?.email} />
                                     <DetailField label="Specialization" value={selectedItem.specialization} />
@@ -258,6 +280,25 @@ function AdminDashboard() {
                                     </div>
                                     <div className="col-span-2">
                                         <DetailField label="Qualifications" value={selectedItem.qualifications?.join(', ')} />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-sm font-semibold text-apple-subtext uppercase tracking-wider mb-2">Verification Documents</p>
+                                        {selectedItem.imrCertificate ? (
+                                            <a 
+                                                href={selectedItem.imrCertificate} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 bg-blue-50 text-apple-blue px-5 py-2.5 rounded-2xl font-semibold border border-blue-100 hover:bg-blue-100 transition-all shadow-sm group"
+                                            >
+                                                <span className="text-xl">📜</span>
+                                                <span>View Indian Medical Register (IMR) Certificate</span>
+                                                <span className="ml-1 opacity-0 group-hover:opacity-100 transition-all">↗</span>
+                                            </a>
+                                        ) : (
+                                            <div className="bg-amber-50 text-amber-700 px-4 py-3 rounded-2xl text-sm italic border border-amber-100">
+                                                No IMR Certificate uploaded yet.
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Verification Section */}
@@ -280,11 +321,11 @@ function AdminDashboard() {
 
                                         {trustScoreData && (
                                             <div className="space-y-4 animate-in fade-in duration-500">
-                                                <div className="flex items-center gap-6">
-                                                    <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center text-3xl font-black ${trustScoreData.trust_score >= 80 ? 'border-green-500 text-green-600' : trustScoreData.trust_score >= 50 ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-600'}`}>
+                                                <div className="flex flex-col sm:flex-row items-center gap-6">
+                                                    <div className={`w-24 h-24 rounded-full border-4 flex-shrink-0 flex items-center justify-center text-3xl font-black ${trustScoreData.trust_score >= 80 ? 'border-green-500 text-green-600' : trustScoreData.trust_score >= 50 ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-600'}`}>
                                                         {trustScoreData.trust_score}%
                                                     </div>
-                                                    <div className="flex-1 grid grid-cols-3 gap-2">
+                                                    <div className="flex-1 grid grid-cols-3 gap-2 w-full">
                                                         <MatchBadge label="Name" match={trustScoreData.comparison_result.name_match} />
                                                         <MatchBadge label="Qualification" match={trustScoreData.comparison_result.qualification_match} />
                                                         <MatchBadge label="Council" match={trustScoreData.comparison_result.council_match} />
@@ -292,11 +333,12 @@ function AdminDashboard() {
                                                 </div>
                                                 
                                                 {trustScoreData.registry_data && (
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-100 text-xs">
-                                                        <p className="font-bold text-apple-subtext mb-2 uppercase">Official Registry Data Found:</p>
-                                                        <p><strong>Name:</strong> {trustScoreData.registry_data.name}</p>
-                                                        <p><strong>Qualification:</strong> {trustScoreData.registry_data.qualification}</p>
-                                                        <p><strong>Council:</strong> {trustScoreData.registry_data.council}</p>
+                                                    <div className="bg-white p-4 rounded-2xl border border-gray-100 text-xs shadow-sm">
+                                                        <p className="font-bold text-apple-subtext mb-2 uppercase border-b pb-1">Official Registry Data Found:</p>
+                                                        <p className="mb-1"><strong>Name:</strong> {trustScoreData.registry_data.name}</p>
+                                                        <p className="mb-1"><strong>Date of Birth:</strong> <span className="text-gray-400 italic font-medium">{trustScoreData.registry_data.dateOfBirth}</span></p>
+                                                        <p className="mb-1"><strong>Qualification:</strong> {trustScoreData.registry_data.qualification}</p>
+                                                        <p className="mb-1"><strong>Council:</strong> {trustScoreData.registry_data.council}</p>
                                                     </div>
                                                 )}
 
@@ -323,7 +365,7 @@ function AdminDashboard() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <DetailField label="Hospital Name" value={selectedItem.name} />
                                         <DetailField label="Contact Number" value={selectedItem.contactNumber} />
                                         <DetailField label="Registration Number" value={selectedItem.registrationNumber || 'N/A'} />
@@ -349,14 +391,14 @@ function AdminDashboard() {
                             )}
                         </div>
 
-                        <div className="mt-8 pt-6 border-t flex justify-end gap-4">
+                        <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-end gap-4">
                             <button 
                                 onClick={() => {
                                     if(detailType === 'doctor') handleRejectDoctor(selectedItem._id);
                                     else handleRejectHospital(selectedItem._id);
                                     setSelectedItem(null);
                                 }}
-                                className="px-6 py-2.5 text-red-500 hover:bg-red-50 rounded-full font-medium transition-colors"
+                                className="w-full sm:w-auto px-6 py-2.5 text-red-500 hover:bg-red-50 rounded-full font-medium transition-colors border border-transparent hover:border-red-100"
                             >
                                 Reject Application
                             </button>
@@ -366,7 +408,7 @@ function AdminDashboard() {
                                     else handleApproveHospital(selectedItem._id);
                                     setSelectedItem(null);
                                 }}
-                                className="px-8 py-2.5 bg-green-500 text-white rounded-full hover:bg-green-600 font-medium shadow-md transition-all"
+                                className="w-full sm:w-auto px-8 py-2.5 bg-green-500 text-white rounded-full hover:bg-green-600 font-medium shadow-md transition-all"
                             >
                                 Approve Registration
                             </button>

@@ -1,34 +1,48 @@
 const Doctor = require('../models/Doctor');
 const User = require('../models/User');
 const { fetchDoctorRegistryData, calculateTrustScore } = require('../utils/verificationService');
+const fs = require('fs');
+const path = require('path');
+
+const logFile = path.join(__dirname, '..', 'verification.log');
+
+function logTo(msg) {
+    const timestamp = new Date().toISOString();
+    const entry = `[${timestamp}] ${msg}\n`;
+    console.log(msg);
+    fs.appendFileSync(logFile, entry);
+}
 
 // @desc    Check Doctor Trust Score (NMC Verification)
 // @route   POST /api/doctors/:id/check-trust-score
 // @access  Private (Admin)
 const checkTrustScore = async (req, res) => {
     try {
+        logTo(`[DoctorController] Checking trust score for doctor ID: ${req.params.id}`);
         const doctor = await Doctor.findById(req.params.id).populate('user', 'name');
-        if (!doctor) {
-            return res.status(404).json({ message: 'Doctor not found' });
+        if (!doctor || !doctor.user) {
+            return res.status(404).json({ message: 'Doctor or associated user not found' });
         }
 
         let registryData = null;
         let scraperError = false;
+        let scraperErrorMessage = "";
 
         // 1. Fetch from Registry
         try {
-            registryData = await fetchDoctorRegistryData(doctor.registrationNumber);
+            registryData = await fetchDoctorRegistryData(doctor.registrationNumber, doctor.stateMedicalCouncil);
             if (!registryData) scraperError = true;
         } catch (err) {
-            console.error("Scraper failed:", err.message);
+            logTo(`[DoctorController] Scraper failed internally: ${err.message}`);
             scraperError = true;
+            scraperErrorMessage = err.message;
         }
 
         // 2. Prepare Input for comparison
         const inputData = {
-            name: doctor.user.name,
-            qualification: doctor.qualifications.join(' '),
-            council: doctor.stateMedicalCouncil
+            name: doctor.user.name || "Unknown",
+            qualification: (doctor.qualifications && doctor.qualifications.length > 0) ? doctor.qualifications.join(' ') : "MBBS",
+            council: doctor.stateMedicalCouncil || "N/A"
         };
 
         // 3. Handle Scraper Failure (Simulation for Demo)
@@ -56,11 +70,22 @@ const checkTrustScore = async (req, res) => {
         // 4. Calculate Score
         const trustScore = calculateTrustScore(inputData, registryData);
 
-        // 5. Determine comparison matches
+        // 5. Determine comparison matches with safety guards
+        const safeLower = (str) => (str || "").toLowerCase();
+        const normalizeDate = (d) => {
+            if (!d) return "";
+            if (d.toString().includes('/')) return d; 
+            const dateObj = new Date(d);
+            if (isNaN(dateObj)) return d;
+            return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        };
+
         const comparison = {
-            name_match: inputData.name.toLowerCase() === registryData.name.toLowerCase(),
-            qualification_match: inputData.qualification.toLowerCase().includes(registryData.qualification.toLowerCase()),
-            council_match: inputData.council.toLowerCase() === registryData.council.toLowerCase()
+            name_match: safeLower(inputData.name) === safeLower(registryData.name),
+            date_of_birth: registryData.dateOfBirth || "N/A",
+            dob_match: normalizeDate(doctor.dateOfBirth) === registryData.dateOfBirth,
+            qualification_match: safeLower(inputData.qualification).includes(safeLower(registryData.qualification)),
+            council_match: safeLower(inputData.council) === safeLower(registryData.council)
         };
 
         res.json({
@@ -71,7 +96,7 @@ const checkTrustScore = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Verification Error:", error.message);
+        logTo(`[DoctorController] UNCAUGHT ERROR: ${error.message} - ${error.stack}`);
         res.status(500).json({ 
             message: 'Verification failed', 
             error: error.message,
@@ -86,7 +111,20 @@ const checkTrustScore = async (req, res) => {
 // @route   POST /api/doctors/profile
 // @access  Private (Doctor)
 const updateDoctorProfile = async (req, res) => {
-    const { specialization, qualifications, experience, feesPerConsultation, bio, timings, registrationNumber, clinicName, location, yearOfRegistration, stateMedicalCouncil } = req.body;
+    const { 
+        specialization, 
+        qualifications, 
+        experience, 
+        feesPerConsultation, 
+        bio, 
+        timings, 
+        registrationNumber, 
+        clinicName, 
+        location, 
+        yearOfRegistration, 
+        stateMedicalCouncil,
+        dateOfBirth 
+    } = req.body;
 
     try {
         let doctor = await Doctor.findOne({ user: req.user.id });
@@ -104,6 +142,7 @@ const updateDoctorProfile = async (req, res) => {
             doctor.location = location || doctor.location;
             doctor.yearOfRegistration = yearOfRegistration || doctor.yearOfRegistration;
             doctor.stateMedicalCouncil = stateMedicalCouncil || doctor.stateMedicalCouncil;
+            doctor.dateOfBirth = dateOfBirth || doctor.dateOfBirth;
 
             const updatedDoctor = await doctor.save();
             res.json(updatedDoctor);
@@ -122,6 +161,7 @@ const updateDoctorProfile = async (req, res) => {
                 location,
                 yearOfRegistration,
                 stateMedicalCouncil,
+                dateOfBirth,
                 status: 'pending' // Force pending on new creation
             });
 
@@ -138,9 +178,19 @@ const updateDoctorProfile = async (req, res) => {
 // @access  Private (Doctor)
 const getDoctorProfile = async (req, res) => {
     try {
-        const doctor = await Doctor.findOne({ user: req.user.id }).populate('user', 'name email');
+        let doctor = await Doctor.findOne({ user: req.user.id }).populate('user', 'name email');
         if (!doctor) {
-            return res.status(404).json({ message: 'Doctor profile not found' });
+            // Auto-create a basic profile if user is a doctor
+            if (req.user.role === 'doctor') {
+                doctor = new Doctor({
+                    user: req.user.id,
+                    status: 'pending'
+                });
+                await doctor.save();
+                doctor = await Doctor.findById(doctor._id).populate('user', 'name email');
+            } else {
+                return res.status(404).json({ message: 'Doctor profile not found' });
+            }
         }
         res.json(doctor);
     } catch (error) {
@@ -228,4 +278,53 @@ const getPendingDoctors = async (req, res) => {
     }
 };
 
-module.exports = { updateDoctorProfile, getDoctorProfile, getAllDoctors, approveDoctor, rejectDoctor, getPendingDoctors, checkTrustScore };
+// @desc    Get Doctors by Status
+// @route   GET /api/doctors/admin/list
+// @access  Private (Admin)
+const getDoctorsByStatus = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const query = status ? { status } : {};
+        const doctors = await Doctor.find(query).populate('user', 'name email');
+        res.json(doctors);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Upload IMR Certificate
+// @route   POST /api/doctors/imr-certificate
+// @access  Private (Doctor)
+const uploadIMRCertificate = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        let doctor = await Doctor.findOne({ user: req.user.id });
+        if (!doctor) {
+            // Auto-create profile if missing
+            if (req.user.role === 'doctor') {
+                doctor = new Doctor({
+                    user: req.user.id,
+                    status: 'pending'
+                });
+                await doctor.save();
+            } else {
+                return res.status(404).json({ message: 'Doctor profile not found' });
+            }
+        }
+
+        doctor.imrCertificate = req.file.path; // Cloudinary URL
+        await doctor.save();
+
+        res.json({
+            message: 'IMR Certificate uploaded successfully',
+            imrCertificate: doctor.imrCertificate
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { updateDoctorProfile, getDoctorProfile, getAllDoctors, approveDoctor, rejectDoctor, getPendingDoctors, checkTrustScore, getDoctorsByStatus, uploadIMRCertificate };

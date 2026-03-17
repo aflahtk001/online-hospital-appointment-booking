@@ -51,6 +51,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/records', medicalRecordRoutes);
 
+app.use('/api/records', medicalRecordRoutes);
+
 app.get('/', (req, res) => {
     res.send('API is running...');
 });

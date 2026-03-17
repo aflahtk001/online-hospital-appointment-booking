@@ -62,8 +62,8 @@ function Login() {
     }
 
     return (
-        <div className='flex items-center justify-center min-h-screen bg-apple-gray'>
-            <div className='w-full max-w-md p-10 space-y-8 bg-white rounded-3xl shadow-lg'>
+        <div className='flex items-center justify-center min-h-screen bg-apple-gray p-4'>
+            <div className='w-full max-w-md p-6 sm:p-10 space-y-8 bg-white rounded-3xl shadow-lg'>
                 <div className='flex flex-col items-center justify-center space-y-2'>
                     <h1 className='text-3xl font-semibold tracking-tight text-apple-text flex items-center gap-2'>
                         <FaSignInAlt className="text-apple-blue" /> Login

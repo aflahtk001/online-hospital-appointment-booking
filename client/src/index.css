@@ -8,6 +8,11 @@
   --color-apple-text: #1d1d1f;
   --color-apple-subtext: #86868b;
   --color-apple-card: #ffffff;
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
 }
 
 :root {
@@ -18,4 +23,10 @@ body {
   background-color: var(--color-apple-gray);
   color: var(--color-apple-text);
   @apply antialiased;
+}
+
+@layer utilities {
+  .animate-blink {
+    animation: blink 2s step-start infinite;
+  }
 }

@@ -204,11 +204,11 @@ function PatientDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-apple-gray p-8 relative">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
+            <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                 {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
                         <div>
                             <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Patient Portal</h1>
                             <p className="text-apple-subtext text-lg">Welcome back, {user && user.name}</p>
@@ -222,7 +222,7 @@ function PatientDashboard() {
                     </div>
                     <button
                         onClick={onLogout}
-                        className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
                     >
                         Sign Out
                     </button>
@@ -245,16 +245,16 @@ function PatientDashboard() {
 
                 {/* Live Queue Alert */}
                 {alertMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-800 p-6 rounded-3xl animate-pulse shadow-sm flex items-center gap-4">
-                        <span className="text-3xl">📢</span>
-                        <p className="font-bold text-lg">{alertMessage}</p>
+                    <div className="bg-green-50 border border-green-200 text-green-800 p-4 sm:p-6 rounded-3xl animate-pulse shadow-sm flex items-center gap-4">
+                        <span className="text-2xl sm:text-3xl">📢</span>
+                        <p className="font-bold text-base sm:text-lg">{alertMessage}</p>
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Actions & Queue (Left Col) */}
                     <div className="space-y-6">
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 text-center">
                             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🩺</div>
                             <h2 className="text-xl font-bold mb-2 text-apple-text">Need a checkup?</h2>
                             <p className="text-apple-subtext mb-6 text-sm">Find specialists and book appointments instantly.</p>
@@ -263,12 +263,12 @@ function PatientDashboard() {
                             </Link>
                         </div>
 
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold mb-4 text-apple-text">Live Queue Status</h2>
                             {liveToken ? (
                                 <div className="text-center py-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
                                     <p className="text-apple-subtext text-xs uppercase tracking-wide font-bold mb-1">Now Calling</p>
-                                    <h3 className="text-5xl font-black text-apple-blue my-2 tracking-tighter animate-bounce">{liveToken.currentServingToken}</h3>
+                                    <h3 className="text-5xl font-black text-apple-blue my-2 tracking-tighter animate-blink">{liveToken.currentServingToken}</h3>
                                     <p className="text-apple-text font-semibold text-sm">Doctor: Dr. {liveToken.doctorName}</p>
                                     <div className="mt-4 flex flex-col items-center gap-2">
                                         <div className="flex gap-2">
@@ -291,7 +291,7 @@ function PatientDashboard() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
                         <h2 className="text-xl font-bold mb-6 text-apple-text sticky top-0 bg-white pb-2 border-b border-gray-50">My Prescriptions</h2>
                         {prescriptions.length > 0 ? (
                             <div className="space-y-4">
@@ -322,7 +322,7 @@ function PatientDashboard() {
                     </div>
 
                     {/* Medical Records (Right Col) */}
-                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 max-h-[80vh] overflow-y-auto custom-scrollbar">
                         <h2 className="text-xl font-bold mb-6 text-apple-text sticky top-0 bg-white pb-2 border-b border-gray-50">Medical Records</h2>
 
                         {/* Upload Form */}

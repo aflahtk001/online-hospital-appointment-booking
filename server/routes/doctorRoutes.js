@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { updateDoctorProfile, getDoctorProfile, getAllDoctors, approveDoctor, rejectDoctor, getPendingDoctors, checkTrustScore } = require('../controllers/doctorController');
+const { updateDoctorProfile, getDoctorProfile, getAllDoctors, approveDoctor, rejectDoctor, getPendingDoctors, checkTrustScore, getDoctorsByStatus, uploadIMRCertificate } = require('../controllers/doctorController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+
+router.route('/imr-certificate')
+    .post(protect, authorize('doctor'), upload.single('certificate'), uploadIMRCertificate);
 
 router.route('/profile')
     .post(protect, authorize('doctor'), updateDoctorProfile)
@@ -15,6 +19,9 @@ router.route('/:id/approve')
 
 router.route('/:id/reject')
     .put(protect, authorize('admin', 'super_admin'), rejectDoctor);
+
+router.route('/admin/list')
+    .get(protect, authorize('admin', 'super_admin'), getDoctorsByStatus);
 
 router.route('/pending')
     .get(protect, authorize('admin', 'super_admin'), getPendingDoctors);
