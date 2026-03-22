@@ -6,6 +6,7 @@ import axios from 'axios';
 import { HiCheck, HiX, HiEye } from 'react-icons/hi';
 import NotificationBell from '../components/NotificationBell';
 import { useAlert } from '../context/AlertContext';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -24,7 +25,7 @@ function AdminDashboard() {
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [trustScoreData, setTrustScoreData] = useState(null);
     const [notificationForm, setNotificationForm] = useState({ targetGroup: 'all_hospitals', message: '' });
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
 
     const onLogout = () => {
         dispatch(logout());
@@ -32,13 +33,20 @@ function AdminDashboard() {
         navigate('/');
     };
 
+    const chartData = [
+        { name: 'Patients', value: stats.totalPatients, color: '#3b82f6' }, // blue-500
+        { name: 'Appointments', value: stats.totalAppointments, color: '#a855f7' }, // purple-500
+        { name: 'Doctors', value: stats.totalDoctors, color: '#22c55e' }, // green-500
+        { name: 'Hospitals', value: stats.totalHospitals, color: '#ef4444' } // red-500
+    ];
+
     useEffect(() => {
         if (!user || user.role !== 'super_admin') {
             navigate('/login');
         } else {
             fetchAllData();
         }
-    }, [user, navigate, activeTab, selectedDate]);
+    }, [user, navigate, activeTab, selectedMonth]);
 
     const fetchAllData = async () => {
         try {
@@ -56,7 +64,7 @@ function AdminDashboard() {
             setHospitals(hospRes.data);
 
             // 3. Fetch System Stats
-            const statsRes = await axios.get(`${API}/api/admin/stats?date=${selectedDate}`, config);
+            const statsRes = await axios.get(`${API}/api/admin/stats?month=${selectedMonth}`, config);
             setStats(statsRes.data);
 
         } catch (error) {
@@ -165,30 +173,38 @@ function AdminDashboard() {
                     <StatCard title="Active Hospitals" value={stats.totalHospitals} icon="🏥" />
                 </div>
 
-                {/* Appointment Date Picker & Stats */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 rounded-2xl text-2xl">📊</div>
-                        <div>
-                            <h2 className="text-xl font-bold text-apple-text">Appointments by Date</h2>
-                            <p className="text-apple-subtext text-sm">Select a date to view total bookings</p>
+                {/* Main Content Area */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Monthly Trends */}
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 lg:col-span-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 border-b pb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-100 rounded-2xl text-2xl">📈</div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-apple-text">Monthly Overview</h2>
+                                    <p className="text-apple-subtext text-sm">Visual breakdown of platform trends</p>
+                                </div>
+                            </div>
+                            <div className="w-full sm:w-auto">
+                                <input 
+                                    type="month" 
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 font-medium text-apple-text transition-all"
+                                />
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-48">
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 font-medium text-apple-text transition-all"
-                            />
-                        </div>
-                        
-                        <div className="bg-apple-gray/50 px-8 py-4 rounded-2xl border border-gray-100 flex items-center gap-4 w-full sm:w-auto min-w-[200px] justify-center sm:justify-start">
-                            <span className="text-3xl font-bold text-apple-blue">{stats.dateAppointments || 0}</span>
-                            <span className="text-sm font-semibold text-apple-subtext uppercase tracking-widest">Appointments</span>
-                        </div>
+
+                        {stats.dailyStats && stats.dailyStats.length > 0 ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <ChartCard title="Patient Registrations" data={stats.dailyStats} dataKey="patients" color="#3b82f6" />
+                                <ChartCard title="Appointments Booked" data={stats.dailyStats} dataKey="appointments" color="#a855f7" />
+                                <ChartCard title="Doctors Onboarded" data={stats.dailyStats} dataKey="doctors" color="#22c55e" />
+                                <ChartCard title="Hospitals Approved" data={stats.dailyStats} dataKey="hospitals" color="#ef4444" />
+                            </div>
+                        ) : (
+                            <div className="text-center py-10 text-gray-400 italic">No trend data available for this month</div>
+                        )}
                     </div>
                 </div>
 
@@ -568,6 +584,54 @@ function StatCard({ title, value, icon }) {
             <div className="flex flex-col">
                 <span className="text-3xl font-bold text-apple-text tracking-tighter leading-none">{value}</span>
                 <span className="text-apple-subtext font-medium text-sm mt-1 uppercase tracking-wide">{title}</span>
+            </div>
+        </div>
+    );
+}
+
+function ChartCard({ title, data, dataKey, color }) {
+    return (
+        <div className="flex flex-col h-[280px]">
+            <h3 className="text-sm font-bold text-apple-subtext uppercase tracking-widest mb-4 pl-2">{title}</h3>
+            <div className="flex-grow w-full bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id={`color-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <XAxis 
+                            dataKey="date" 
+                            tick={{fill: '#9ca3af', fontSize: 10}} 
+                            axisLine={false} 
+                            tickLine={false} 
+                            minTickGap={20}
+                        />
+                        <YAxis 
+                            tick={{fill: '#9ca3af', fontSize: 10}} 
+                            axisLine={false} 
+                            tickLine={false} 
+                            allowDecimals={false}
+                        />
+                        <Tooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+                            labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
+                            itemStyle={{ fontWeight: 'bold', color: color }}
+                            formatter={(value) => [value, title]}
+                            labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || `Day ${label}`}
+                        />
+                        <Area 
+                            type="monotone" 
+                            dataKey={dataKey} 
+                            stroke={color} 
+                            strokeWidth={3}
+                            fillOpacity={1} 
+                            fill={`url(#color-${dataKey})`} 
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );
