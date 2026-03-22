@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import { HiCheck, HiX, HiEye } from 'react-icons/hi';
-import NotificationBell from '../components/NotificationBell';
 import { useAlert } from '../context/AlertContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -155,7 +154,6 @@ function AdminDashboard() {
                         <p className="text-apple-subtext text-lg">Overview for {user && user.name}</p>
                     </div>
                     <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
-                        <NotificationBell />
                         <button
                             onClick={onLogout}
                             className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
