@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
+import NotificationBell from '../components/NotificationBell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -15,19 +16,15 @@ function HospitalDashboard() {
     const [doctors, setDoctors] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [showReportsModal, setShowReportsModal] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        specialization: '',
-        experience: '',
-        feesPerConsultation: '',
-        registrationNumber: '',
-        clinicName: '',
-        location: '',
-        yearOfRegistration: '',
-        stateMedicalCouncil: ''
+        name: '', email: '', password: '', specialization: '', experience: '',
+        feesPerConsultation: '', timings: '', registrationNumber: '', clinicName: '',
+        location: '', yearOfRegistration: '', stateMedicalCouncil: '', dateOfBirth: '', qualifications: ''
     });
+    const [certificateFile, setCertificateFile] = useState(null);
+    const [doctorCertUrl, setDoctorCertUrl] = useState('');
+    const [isUploadingDoctorCert, setIsUploadingDoctorCert] = useState(false);
 
     const [showRegisterForm, setShowRegisterForm] = useState(false);
     const [registerFormData, setRegisterFormData] = useState({
@@ -40,6 +37,13 @@ function HospitalDashboard() {
         state: '',
         zip: ''
     });
+    const [regCert, setRegCert] = useState(null);
+    const [accCert, setAccCert] = useState(null);
+    const [regCertUrl, setRegCertUrl] = useState('');
+    const [accCertUrl, setAccCertUrl] = useState('');
+    const [notificationForm, setNotificationForm] = useState({ targetGroup: 'hospital_doctors', message: '' });
+    const [isUploadingReg, setIsUploadingReg] = useState(false);
+    const [isUploadingAcc, setIsUploadingAcc] = useState(false);
 
     const [stats, setStats] = useState(null);
 
@@ -93,27 +97,87 @@ function HospitalDashboard() {
         }
     };
 
+    const handleUploadCertificate = async (file, type) => {
+        if (!file) return alert('Please select a file first');
+        
+        const formData = new FormData();
+        formData.append('certificate', file);
+        
+        try {
+            if (type === 'reg') setIsUploadingReg(true);
+            else setIsUploadingAcc(true);
+
+            const config = {
+                headers: { 
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+            const res = await axios.post(`${API_URL}/api/hospitals/upload-certificate`, formData, config);
+            
+            if (type === 'reg') setRegCertUrl(res.data.url);
+            else setAccCertUrl(res.data.url);
+            
+            alert('Certificate Uploaded Successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to upload certificate');
+        } finally {
+            if (type === 'reg') setIsUploadingReg(false);
+            else setIsUploadingAcc(false);
+        }
+    };
+
+    const handleUploadDoctorCertificate = async () => {
+        if (!certificateFile) return alert('Please select a file first');
+        
+        const formData = new FormData();
+        formData.append('certificate', certificateFile);
+        
+        try {
+            setIsUploadingDoctorCert(true);
+            const config = {
+                headers: { 
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+            const res = await axios.post(`${API_URL}/api/hospitals/upload-certificate`, formData, config);
+            setDoctorCertUrl(res.data.url);
+            alert('Doctor Certificate Uploaded Successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to upload certificate');
+        } finally {
+            setIsUploadingDoctorCert(false);
+        }
+    };
+
     const handleRegisterHospital = async (e) => {
         e.preventDefault();
         try {
-            const config = {
-                headers: { Authorization: `Bearer ${user.token}` },
-            };
-            const payload = {
-                name: registerFormData.name,
-                contactNumber: registerFormData.contactNumber,
-                registrationNumber: registerFormData.registrationNumber,
-                registrationValidity: registerFormData.registrationValidity,
-                address: {
-                    street: registerFormData.street,
-                    city: registerFormData.city,
-                    state: registerFormData.state,
-                    zip: registerFormData.zip
-                },
-                departments: [{ name: 'General' }] // Default department
-            };
+            const formData = new FormData();
+            formData.append('name', registerFormData.name);
+            formData.append('contactNumber', registerFormData.contactNumber);
+            formData.append('registrationNumber', registerFormData.registrationNumber);
+            formData.append('registrationValidity', registerFormData.registrationValidity);
+            formData.append('address', JSON.stringify({
+                street: registerFormData.street,
+                city: registerFormData.city,
+                state: registerFormData.state,
+                zip: registerFormData.zip
+            }));
+            formData.append('departments', JSON.stringify([{ name: 'General' }]));
+            
+            if (regCertUrl) formData.append('registrationCertificate', regCertUrl);
+            if (accCertUrl) formData.append('accreditationCertificate', accCertUrl);
 
-            await axios.post(`${API_URL}/api/hospitals`, payload, config);
+            await axios.post(`${API_URL}/api/hospitals`, formData, {
+                headers: { 
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             alert('Hospital Registered Successfully!');
             setShowRegisterForm(false);
             fetchHospitalData();
@@ -123,16 +187,36 @@ function HospitalDashboard() {
         }
     };
 
+    const handleSendNotification = async (e) => {
+        e.preventDefault();
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
+            alert(res.data.message);
+            setNotificationForm({ targetGroup: 'hospital_doctors', message: '' });
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Failed to send notification');
+        }
+    };
+
     const handleAddDoctor = async (e) => {
         e.preventDefault();
         try {
             const config = {
-                headers: { Authorization: `Bearer ${user.token}` },
+                headers: { 
+                    Authorization: `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                },
             };
-            await axios.post(`${API_URL}/api/hospitals/doctors`, formData, config);
+            const submitData = { ...formData, imrCertificate: doctorCertUrl };
+
+            await axios.post(`${API_URL}/api/hospitals/doctors`, submitData, config);
             alert('Doctor Added Successfully');
             setShowModal(false);
-            setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '', registrationNumber: '', clinicName: '', location: '' });
+            setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '', registrationNumber: '', clinicName: '', location: '', dateOfBirth: '', qualifications: '', yearOfRegistration: '', stateMedicalCouncil: '', timings: '' });
+            setCertificateFile(null);
+            setDoctorCertUrl('');
             fetchHospitalData(); // Refresh list
         } catch (error) {
             console.error(error);
@@ -220,6 +304,77 @@ function HospitalDashboard() {
                                 />
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="bg-blue-50/30 p-4 rounded-2xl border border-blue-100/50">
+                                <label className="block text-sm font-semibold text-apple-subtext mb-3 ml-1">Registration Certificate *</label>
+                                <div className="flex flex-col gap-3">
+                                    <input
+                                        type="file"
+                                        className="block w-full text-sm text-gray-500
+                                            file:mr-4 file:py-2 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-apple-blue file:text-white
+                                            hover:file:bg-blue-600 transition-all cursor-pointer bg-white rounded-xl border border-gray-100"
+                                        onChange={(e) => setRegCert(e.target.files[0])}
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleUploadCertificate(regCert, 'reg')}
+                                        disabled={!regCert || isUploadingReg}
+                                        className={`w-full py-2 rounded-xl font-medium transition-all ${
+                                            !regCert || isUploadingReg 
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : 'bg-apple-blue text-white hover:bg-blue-600 shadow-sm'
+                                        }`}
+                                    >
+                                        {isUploadingReg ? 'Uploading...' : 'Upload Registration Cert'}
+                                    </button>
+                                    {regCertUrl && (
+                                        <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
+                                            <span>✅ Uploaded!</span>
+                                            <a href={regCertUrl} target="_blank" rel="noopener noreferrer" className="underline ml-auto">View</a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="bg-purple-50/30 p-4 rounded-2xl border border-purple-100/50">
+                                <label className="block text-sm font-semibold text-apple-subtext mb-3 ml-1">Accreditation (NABH/JCI)</label>
+                                <div className="flex flex-col gap-3">
+                                    <input
+                                        type="file"
+                                        className="block w-full text-sm text-gray-500
+                                            file:mr-4 file:py-2 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-apple-blue file:text-white
+                                            hover:file:bg-blue-600 transition-all cursor-pointer bg-white rounded-xl border border-gray-100"
+                                        onChange={(e) => setAccCert(e.target.files[0])}
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleUploadCertificate(accCert, 'acc')}
+                                        disabled={!accCert || isUploadingAcc}
+                                        className={`w-full py-2 rounded-xl font-medium transition-all ${
+                                            !accCert || isUploadingAcc 
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : 'bg-apple-blue text-white hover:bg-blue-600 shadow-sm'
+                                        }`}
+                                    >
+                                        {isUploadingAcc ? 'Uploading...' : 'Upload Accreditation Cert'}
+                                    </button>
+                                    {accCertUrl && (
+                                        <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
+                                            <span>✅ Uploaded!</span>
+                                            <a href={accCertUrl} target="_blank" rel="noopener noreferrer" className="underline ml-auto">View</a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Street</label>
@@ -271,12 +426,15 @@ function HospitalDashboard() {
                         <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Hospital Portal</h1>
                         <p className="text-apple-subtext text-lg">Admin Console for {user && user.name}</p>
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 {/* Hospital Info Banner */}
@@ -314,8 +472,19 @@ function HospitalDashboard() {
                         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
                             <h2 className="text-2xl font-semibold text-apple-text">Medical Staff</h2>
                             <button
-                                onClick={() => setShowModal(true)}
-                                className="w-full sm:w-auto bg-apple-blue text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm"
+                                onClick={() => {
+                                    if (hospital?.status !== 'approved') {
+                                        alert('Your hospital must be approved by the Super Admin before you can add doctors.');
+                                        return;
+                                    }
+                                    setShowModal(true);
+                                }}
+                                className={`w-full sm:w-auto px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm ${
+                                    hospital?.status !== 'approved' 
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-apple-blue text-white hover:bg-blue-600'
+                                }`}
+                                title={hospital?.status !== 'approved' ? 'Approval required to add doctors' : ''}
                             >
                                 + Add Doctor
                             </button>
@@ -334,16 +503,35 @@ function HospitalDashboard() {
                                                 <p className="text-apple-subtext text-sm">{doc.specialization}</p>
                                             </div>
                                         </div>
-                                        <span className={`w-full sm:w-auto text-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                            {doc.status}
-                                        </span>
+                                        <div className="flex w-full sm:w-auto gap-3 items-center mt-3 sm:mt-0">
+                                            <button 
+                                                onClick={() => setSelectedDoctor(doc)} 
+                                                className="flex-1 sm:flex-none px-4 py-1.5 text-apple-blue hover:bg-blue-50 border border-blue-100 rounded-full transition-all flex items-center justify-center font-medium text-sm shadow-sm"
+                                            >
+                                                View Profile
+                                            </button>
+                                            <span className={`flex-1 sm:flex-none text-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border ${doc.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                                                {doc.status}
+                                            </span>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-64 text-center">
                                 <p className="text-apple-subtext text-lg">No doctors assigned yet.</p>
-                                <button onClick={() => setShowModal(true)} className="text-apple-blue mt-2 font-medium hover:underline">Add your first doctor</button>
+                                <button 
+                                    onClick={() => {
+                                        if (hospital?.status !== 'approved') {
+                                            alert('Your hospital must be approved by the Super Admin before you can add doctors.');
+                                            return;
+                                        }
+                                        setShowModal(true);
+                                    }} 
+                                    className={`mt-2 font-medium ${hospital?.status !== 'approved' ? 'text-gray-400 cursor-not-allowed' : 'text-apple-blue hover:underline'}`}
+                                >
+                                    Add your first doctor
+                                </button>
                             </div>
                         )}
                     </div>
@@ -364,9 +552,122 @@ function HospitalDashboard() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Send Notification Section */}
+                        {hospital && hospital.status === 'approved' && (
+                            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-2 bg-blue-100 rounded-xl text-xl">📢</div>
+                                    <h2 className="text-xl font-bold text-apple-text">Notify Doctors</h2>
+                                </div>
+                                <form onSubmit={handleSendNotification} className="space-y-4">
+                                    <textarea 
+                                        value={notificationForm.message}
+                                        onChange={(e) => setNotificationForm({...notificationForm, message: e.target.value})}
+                                        required
+                                        rows="3"
+                                        placeholder="Type broadcast message for your doctors..."
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text text-sm transition-all resize-none"
+                                    ></textarea>
+                                    <button 
+                                        type="submit"
+                                        className="w-full bg-apple-blue text-white px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:bg-blue-600 transition-all hover:shadow-md"
+                                    >
+                                        Send Message
+                                    </button>
+                                </form>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Doctor Profile View Modal */}
+            {selectedDoctor && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fadeIn">
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar transform transition-all">
+                        <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl shadow-sm border border-blue-200">
+                                    {selectedDoctor.user?.name?.charAt(0) || 'D'}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-apple-text">Dr. {selectedDoctor.user?.name || 'Unknown'}</h2>
+                                    <p className="text-apple-subtext font-medium">{selectedDoctor.specialization}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedDoctor(null)} className="text-gray-400 hover:text-gray-600 p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors border border-gray-100">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Email</p>
+                                    <p className="font-medium text-gray-800 truncate">{selectedDoctor.user?.email}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Registration Number</p>
+                                    <p className="font-medium text-gray-800">{selectedDoctor.registrationNumber}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Experience</p>
+                                    <p className="font-medium text-gray-800">{selectedDoctor.experience} Years</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Consultation Fee</p>
+                                    <p className="font-medium text-gray-800">${selectedDoctor.feesPerConsultation}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Shift Timings</p>
+                                    <p className="font-medium text-gray-800">{selectedDoctor.timings || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Clinic Name</p>
+                                    <p className="font-medium text-gray-800">{selectedDoctor.clinicName}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">State Medical Council</p>
+                                    <p className="font-medium text-gray-800 truncate" title={selectedDoctor.stateMedicalCouncil}>{selectedDoctor.stateMedicalCouncil}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Year of Registration</p>
+                                    <p className="font-medium text-gray-800">{selectedDoctor.yearOfRegistration}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50/30 p-6 rounded-2xl border border-blue-50">
+                                <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-3">Qualifications</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedDoctor.qualifications && selectedDoctor.qualifications.length > 0 ? (
+                                        selectedDoctor.qualifications.map((q, i) => (
+                                            <span key={i} className="px-3 py-1 bg-white border border-blue-100 rounded-lg text-sm font-medium text-blue-700 shadow-sm">{q}</span>
+                                        ))
+                                    ) : (
+                                        <span className="text-sm text-gray-500 italic">Not provided</span>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {selectedDoctor.imrCertificate && (
+                                <div className="bg-green-50/30 p-6 rounded-2xl border border-green-50 flex justify-between items-center shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-green-100 rounded-lg text-green-700">📜</div>
+                                        <div>
+                                            <p className="text-sm font-bold text-green-800">IMR Certificate on record</p>
+                                            <p className="text-xs text-green-600 font-medium">Verification document attached</p>
+                                        </div>
+                                    </div>
+                                    <a href={selectedDoctor.imrCertificate} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-bold hover:bg-green-200 transition-colors border border-green-200 whitespace-nowrap">
+                                        View Valid Document
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Add Doctor Modal */}
             {showModal && (
@@ -394,6 +695,18 @@ function HospitalDashboard() {
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Doctor Registration Number</label>
                                 <input type="text" name="registrationNumber" placeholder="e.g. 12345" value={formData.registrationNumber} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    name="dateOfBirth"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    value={formData.dateOfBirth}
+                                    onChange={onChange}
+                                    required
+                                    max={new Date().toISOString().split('T')[0]}
+                                />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
@@ -442,6 +755,50 @@ function HospitalDashboard() {
                                     <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Experience (Yrs)</label>
                                     <input type="number" name="experience" placeholder="10" value={formData.experience} onChange={onChange} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50" required min="0" />
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Qualifications (comma separated)</label>
+                                <input
+                                    type="text"
+                                    name="qualifications"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
+                                    placeholder="MBBS, MD"
+                                    value={formData.qualifications}
+                                    onChange={onChange}
+                                    required
+                                />
+                            </div>
+
+                            {/* IMR Certificate Upload */}
+                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+                                <label className="block text-sm font-medium text-apple-subtext mb-2 flex items-center gap-2">
+                                    <span className="p-1 bg-blue-100 rounded-md">📜</span>
+                                    IMR Certificate Upload
+                                </label>
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        onChange={(e) => setCertificateFile(e.target.files[0])}
+                                        className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors w-full cursor-pointer"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={handleUploadDoctorCertificate} 
+                                        disabled={isUploadingDoctorCert}
+                                        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                            isUploadingDoctorCert ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 
+                                            doctorCertUrl ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-apple-blue text-white hover:bg-blue-600 shadow-sm'
+                                        }`}
+                                    >
+                                        {isUploadingDoctorCert ? 'Uploading...' : doctorCertUrl ? '✓ Uploaded' : 'Upload File'}
+                                    </button>
+                                </div>
+                                {doctorCertUrl && (
+                                    <p className="text-xs text-green-600 mt-2 ml-1 flex items-center gap-1 font-medium">
+                                        <span>✓</span> Certificate securely attached to profile
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Consultation Fees ($)</label>

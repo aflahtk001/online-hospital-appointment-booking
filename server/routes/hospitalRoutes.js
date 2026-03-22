@@ -10,12 +10,22 @@ const {
     getHospitalDoctors, 
     addDoctorToHospital, 
     getHospitalStats, 
-    getHospitalsByStatus 
+    getHospitalsByStatus,
+    uploadCertificate 
 } = require('../controllers/hospitalController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 router.route('/')
-    .post(protect, authorize('hospital_admin'), registerHospital)
+    .post(
+        protect, 
+        authorize('hospital_admin'), 
+        upload.fields([
+            { name: 'registrationCertificate', maxCount: 1 },
+            { name: 'accreditationCertificate', maxCount: 1 }
+        ]),
+        registerHospital
+    )
     .get(getHospitals);
 
 router.route('/:id/approve')
@@ -39,5 +49,7 @@ router.route('/doctors')
 
 router.route('/stats')
     .get(protect, authorize('hospital_admin'), getHospitalStats);
+
+router.post('/upload-certificate', protect, authorize('hospital_admin'), upload.single('certificate'), uploadCertificate);
 
 module.exports = router;

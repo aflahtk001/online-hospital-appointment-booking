@@ -48,6 +48,14 @@ const hospitalSchema = mongoose.Schema({
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
+    },
+    registrationCertificate: {
+        type: String, // Cloudinary URL
+        required: false
+    },
+    accreditationCertificate: {
+        type: String, // Cloudinary URL
+        required: false
     }
 }, {
     timestamps: true

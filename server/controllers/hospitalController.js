@@ -5,17 +5,41 @@ const User = require('../models/User');
 // @route   POST /api/hospitals
 // @access  Private (Hospital Admin)
 const registerHospital = async (req, res) => {
-    const { name, address, contactNumber, departments, registrationNumber, registrationValidity } = req.body;
+    const { 
+        name, 
+        address, 
+        contactNumber, 
+        departments, 
+        registrationNumber, 
+        registrationValidity,
+        registrationCertificate: regUrl,
+        accreditationCertificate: accUrl
+    } = req.body;
 
     try {
+        // Handle Certificate Uploads (Prefer files if provided, otherwise use URLs from body)
+        let registrationCertificate = regUrl || '';
+        let accreditationCertificate = accUrl || '';
+
+        if (req.files) {
+            if (req.files.registrationCertificate && req.files.registrationCertificate[0]) {
+                registrationCertificate = req.files.registrationCertificate[0].path;
+            }
+            if (req.files.accreditationCertificate && req.files.accreditationCertificate[0]) {
+                accreditationCertificate = req.files.accreditationCertificate[0].path;
+            }
+        }
+
         const hospital = new Hospital({
             name,
             admins: [req.user.id], // Creator is the first admin
-            address,
+            address: typeof address === 'string' ? JSON.parse(address) : address,
             contactNumber,
             registrationNumber,
             registrationValidity,
-            departments,
+            departments: typeof departments === 'string' ? JSON.parse(departments) : departments,
+            registrationCertificate,
+            accreditationCertificate,
             isApproved: false // Pending super admin approval
         });
 
@@ -149,12 +173,15 @@ const getHospitalDoctors = async (req, res) => {
 // @route   POST /api/hospitals/doctors
 // @access  Private (Hospital Admin)
 const addDoctorToHospital = async (req, res) => {
-    const { name, email, password, specialization, experience, feesPerConsultation, timings, registrationNumber, clinicName, location, yearOfRegistration, stateMedicalCouncil } = req.body;
+    const { name, email, password, specialization, experience, feesPerConsultation, timings, registrationNumber, clinicName, location, yearOfRegistration, stateMedicalCouncil, dateOfBirth, qualifications, imrCertificate } = req.body;
 
     try {
         const hospital = await Hospital.findOne({ admins: req.user.id });
         if (!hospital) {
             return res.status(404).json({ message: 'Hospital not found' });
+        }
+        if (hospital.status !== 'approved') {
+            return res.status(403).json({ message: 'Only approved hospitals can add doctors' });
         }
 
         // 1. Check if user exists
@@ -185,7 +212,9 @@ const addDoctorToHospital = async (req, res) => {
             location,
             yearOfRegistration,
             stateMedicalCouncil,
-            qualifications: ['MBBS'], // Default
+            dateOfBirth,
+            qualifications: qualifications ? (Array.isArray(qualifications) ? qualifications : qualifications.split(',').map(q => q.trim())) : ['MBBS'],
+            imrCertificate: imrCertificate,
             timings: timings || "Mon-Fri: 09:00 - 17:00", // Use provided or Default
             status: 'approved' // Auto-approve
         });
@@ -238,4 +267,28 @@ const getHospitalStats = async (req, res) => {
     }
 };
 
-module.exports = { registerHospital, getHospitals, approveHospital, rejectHospital, getPendingHospitals, getHospitalDetails, getHospitalDoctors, addDoctorToHospital, getHospitalStats, getHospitalsByStatus };
+const uploadCertificate = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        res.json({ url: req.file.path });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Upload failed' });
+    }
+};
+
+module.exports = { 
+    registerHospital, 
+    getHospitals, 
+    approveHospital, 
+    rejectHospital, 
+    getPendingHospitals, 
+    getHospitalDetails, 
+    getHospitalDoctors, 
+    addDoctorToHospital, 
+    getHospitalStats, 
+    getHospitalsByStatus,
+    uploadCertificate 
+};

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import { HiCheck, HiX, HiEye } from 'react-icons/hi';
+import NotificationBell from '../components/NotificationBell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -15,11 +16,13 @@ function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('pending');
     const [doctors, setDoctors] = useState([]);
     const [hospitals, setHospitals] = useState([]);
-    const [stats, setStats] = useState({ totalUsers: 0, totalAppointments: 0, totalDoctors: 0, totalHospitals: 0 });
+    const [stats, setStats] = useState({ totalPatients: 0, totalAppointments: 0, totalDoctors: 0, totalHospitals: 0 });
     const [selectedItem, setSelectedItem] = useState(null);
     const [detailType, setDetailType] = useState(null);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [trustScoreData, setTrustScoreData] = useState(null);
+    const [notificationForm, setNotificationForm] = useState({ targetGroup: 'all_hospitals', message: '' });
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     const onLogout = () => {
         dispatch(logout());
@@ -33,7 +36,7 @@ function AdminDashboard() {
         } else {
             fetchAllData();
         }
-    }, [user, navigate, activeTab]);
+    }, [user, navigate, activeTab, selectedDate]);
 
     const fetchAllData = async () => {
         try {
@@ -51,7 +54,7 @@ function AdminDashboard() {
             setHospitals(hospRes.data);
 
             // 3. Fetch System Stats
-            const statsRes = await axios.get(`${API}/api/admin/stats`, config);
+            const statsRes = await axios.get(`${API}/api/admin/stats?date=${selectedDate}`, config);
             setStats(statsRes.data);
 
         } catch (error) {
@@ -119,6 +122,19 @@ function AdminDashboard() {
         }
     };
 
+    const handleSendNotification = async (e) => {
+        e.preventDefault();
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
+            alert(res.data.message);
+            setNotificationForm({ targetGroup: 'all_hospitals', message: '' });
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Failed to send notification');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-apple-gray p-4 sm:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -128,20 +144,50 @@ function AdminDashboard() {
                         <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
                         <p className="text-apple-subtext text-lg">Overview for {user && user.name}</p>
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 {/* System Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard title="Total Users" value={stats.totalUsers} />
-                    <StatCard title="Appointments" value={stats.totalAppointments} />
-                    <StatCard title="Active Doctors" value={stats.totalDoctors} />
-                    <StatCard title="Active Hospitals" value={stats.totalHospitals} />
+                    <StatCard title="Total Patients" value={stats.totalPatients} icon="👥" />
+                    <StatCard title="Total Appointments" value={stats.totalAppointments} icon="📅" />
+                    <StatCard title="Active Doctors" value={stats.totalDoctors} icon="👨‍⚕️" />
+                    <StatCard title="Active Hospitals" value={stats.totalHospitals} icon="🏥" />
+                </div>
+
+                {/* Appointment Date Picker & Stats */}
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-purple-100 rounded-2xl text-2xl">📊</div>
+                        <div>
+                            <h2 className="text-xl font-bold text-apple-text">Appointments by Date</h2>
+                            <p className="text-apple-subtext text-sm">Select a date to view total bookings</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-48">
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 font-medium text-apple-text transition-all"
+                            />
+                        </div>
+                        
+                        <div className="bg-apple-gray/50 px-8 py-4 rounded-2xl border border-gray-100 flex items-center gap-4 w-full sm:w-auto min-w-[200px] justify-center sm:justify-start">
+                            <span className="text-3xl font-bold text-apple-blue">{stats.dateAppointments || 0}</span>
+                            <span className="text-sm font-semibold text-apple-subtext uppercase tracking-widest">Appointments</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -245,6 +291,48 @@ function AdminDashboard() {
                             </ul>
                         ) : <p className="text-apple-subtext italic">No {activeTab} hospitals found.</p>}
                     </div>
+                </div>
+
+                {/* Send Notification Section */}
+                <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 mt-8">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="p-3 bg-blue-100 rounded-2xl text-2xl">📢</div>
+                        <div>
+                            <h2 className="text-xl font-bold text-apple-text">Broadcast Notification</h2>
+                            <p className="text-apple-subtext text-sm">Send a message to specific user groups</p>
+                        </div>
+                    </div>
+                    <form onSubmit={handleSendNotification} className="space-y-4 max-w-2xl">
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Send To</label>
+                            <select 
+                                value={notificationForm.targetGroup}
+                                onChange={(e) => setNotificationForm({...notificationForm, targetGroup: e.target.value})}
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text font-medium transition-all"
+                            >
+                                <option value="all_hospitals">All Hospitals</option>
+                                <option value="all_doctors">All Doctors</option>
+                                <option value="all_patients">All Patients</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Message</label>
+                            <textarea 
+                                value={notificationForm.message}
+                                onChange={(e) => setNotificationForm({...notificationForm, message: e.target.value})}
+                                required
+                                rows="3"
+                                placeholder="Type your broadcast message here..."
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text transition-all resize-none"
+                            ></textarea>
+                        </div>
+                        <button 
+                            type="submit"
+                            className="bg-apple-blue text-white px-8 py-3 rounded-full font-medium shadow-md hover:bg-blue-600 transition-all hover:shadow-lg flex items-center gap-2"
+                        >
+                            <span>Send Broadcast</span>
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -376,6 +464,36 @@ function AdminDashboard() {
                                                 value={`${selectedItem.address?.street}, ${selectedItem.address?.city}, ${selectedItem.address?.state} - ${selectedItem.address?.zip}`} 
                                             />
                                         </div>
+                                        <div className="col-span-1">
+                                            <p className="text-sm font-semibold text-apple-subtext uppercase tracking-wider mb-2">Registration Certificate</p>
+                                            {selectedItem.registrationCertificate ? (
+                                                <a 
+                                                    href={selectedItem.registrationCertificate} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 bg-blue-50 text-apple-blue px-4 py-2 rounded-xl font-semibold border border-blue-100 hover:bg-blue-100 transition-all text-sm"
+                                                >
+                                                    📜 View Certificate
+                                                </a>
+                                            ) : (
+                                                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+                                            )}
+                                        </div>
+                                        <div className="col-span-1">
+                                            <p className="text-sm font-semibold text-apple-subtext uppercase tracking-wider mb-2">Accreditation Certificate</p>
+                                            {selectedItem.accreditationCertificate ? (
+                                                <a 
+                                                    href={selectedItem.accreditationCertificate} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-xl font-semibold border border-purple-100 hover:bg-purple-100 transition-all text-sm"
+                                                >
+                                                    🏆 View Accreditation
+                                                </a>
+                                            ) : (
+                                                <p className="text-sm text-gray-400 italic">Not uploaded</p>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold text-apple-subtext uppercase tracking-wider mb-2">Departments</p>
@@ -441,11 +559,14 @@ function DetailField({ label, value, isLongText }) {
 }
 
 // Simple internal component for stats
-function StatCard({ title, value }) {
+function StatCard({ title, value, icon }) {
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center space-y-1">
-            <span className="text-4xl font-bold text-apple-text tracking-tighter">{value}</span>
-            <span className="text-apple-subtext font-medium text-sm uppercase tracking-wide">{title}</span>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6 group hover:shadow-md transition-all hover:border-apple-blue/20">
+            <div className="p-4 bg-gray-50 rounded-2xl text-3xl group-hover:scale-110 transition-transform">{icon || '📊'}</div>
+            <div className="flex flex-col">
+                <span className="text-3xl font-bold text-apple-text tracking-tighter leading-none">{value}</span>
+                <span className="text-apple-subtext font-medium text-sm mt-1 uppercase tracking-wide">{title}</span>
+            </div>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
+import NotificationBell from '../components/NotificationBell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -24,7 +25,9 @@ function DoctorDashboard() {
         diagnosis: '',
         notes: ''
     });
+    const [notificationForm, setNotificationForm] = useState({ targetGroup: 'patients_today', message: '' });
 
+    // History & Records State
     const [isProfileMissing, setIsProfileMissing] = useState(false);
     const [profileForm, setProfileForm] = useState({
         specialization: '',
@@ -321,6 +324,19 @@ function DoctorDashboard() {
         }
     };
 
+    const handleSendNotification = async (e) => {
+        e.preventDefault();
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
+            alert(res.data.message);
+            setNotificationForm({ targetGroup: 'patients_today', message: '' });
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || 'Failed to send notification');
+        }
+    };
+
     if (isProfileMissing) {
         return (
             <div className="min-h-screen bg-apple-gray flex items-center justify-center p-4 sm:p-6">
@@ -580,12 +596,15 @@ function DoctorDashboard() {
                             </span>
                         )}
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tab Navigation */}
@@ -782,6 +801,49 @@ function DoctorDashboard() {
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                )}
+
+                {/* Send Notification Section */}
+                {doctorProfile && doctorProfile.status === 'approved' && (
+                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 mt-8">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-blue-100 rounded-2xl text-2xl">📢</div>
+                            <div>
+                                <h2 className="text-xl font-bold text-apple-text">Notify Patients</h2>
+                                <p className="text-apple-subtext text-sm">Send a message to your patients</p>
+                            </div>
+                        </div>
+                        <form onSubmit={handleSendNotification} className="space-y-4 max-w-2xl">
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Send To</label>
+                                <select 
+                                    value={notificationForm.targetGroup}
+                                    onChange={(e) => setNotificationForm({...notificationForm, targetGroup: e.target.value})}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text font-medium transition-all"
+                                >
+                                    <option value="patients_today">Patients with Appointments Today</option>
+                                    <option value="patients_all">All My Past & Present Patients</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Message</label>
+                                <textarea 
+                                    value={notificationForm.message}
+                                    onChange={(e) => setNotificationForm({...notificationForm, message: e.target.value})}
+                                    required
+                                    rows="3"
+                                    placeholder="Type your message for patients here..."
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text transition-all resize-none"
+                                ></textarea>
+                            </div>
+                            <button 
+                                type="submit"
+                                className="bg-apple-blue text-white px-8 py-3 rounded-full font-medium shadow-md hover:bg-blue-600 transition-all hover:shadow-lg flex items-center gap-2"
+                            >
+                                <span>Send Message</span>
+                            </button>
+                        </form>
                     </div>
                 )}
 

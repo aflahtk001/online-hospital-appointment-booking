@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
+import NotificationBell from '../components/NotificationBell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -220,12 +221,15 @@ function PatientDashboard() {
                             </div>
                         )}
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="w-full sm:w-auto bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
 
                 {!patientProfile && (
