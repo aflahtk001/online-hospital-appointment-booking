@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { register, reset } from '../features/auth/authSlice';
+import { useAlert } from '../context/AlertContext';
 import { FaUser } from 'react-icons/fa';
 
 function Register() {
@@ -17,6 +18,7 @@ function Register() {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { showAlert } = useAlert();
 
     const { user, isLoading, isError, isSuccess, message } = useSelector(
         (state) => state.auth
@@ -24,7 +26,7 @@ function Register() {
 
     useEffect(() => {
         if (isError) {
-            alert(message);
+            showAlert(message, 'error');
         }
 
         if (isSuccess || user) {
@@ -45,7 +47,7 @@ function Register() {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            alert('Passwords do not match');
+            showAlert('Passwords do not match', 'error');
         } else {
             const userData = {
                 name,

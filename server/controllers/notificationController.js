@@ -77,11 +77,11 @@ const sendNotification = async (req, res) => {
         // 1. Super Admin Sending Logic
         if (senderRole === 'super_admin') {
             if (targetGroup === 'all_hospitals') {
-                const hospitals = await User.find({ role: 'hospital_admin' }).select('_id');
-                recipientIds = hospitals.map(h => h._id);
+                const hospitals = await Hospital.find({ status: 'approved' }).select('admins');
+                recipientIds = hospitals.flatMap(h => h.admins);
             } else if (targetGroup === 'all_doctors') {
-                const doctors = await User.find({ role: 'doctor' }).select('_id');
-                recipientIds = doctors.map(d => d._id);
+                const doctors = await Doctor.find({ status: 'approved' }).select('user');
+                recipientIds = doctors.map(d => d.user);
             } else if (targetGroup === 'all_patients') {
                 const patients = await User.find({ role: 'patient' }).select('_id');
                 recipientIds = patients.map(p => p._id);

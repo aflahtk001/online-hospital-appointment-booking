@@ -9,13 +9,17 @@ import AdminDashboard from './pages/AdminDashboard';
 import DoctorSearch from './pages/DoctorSearch';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { AlertProvider } from './context/AlertContext';
+import AlertPopup from './components/AlertPopup';
 
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login />} />
+      <AlertProvider>
+        <AlertPopup />
+        <Router>
+          <Routes>
+            <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           {/* Protected Dashboards */}
@@ -27,6 +31,7 @@ function App() {
           <Route path="/find-doctors" element={<DoctorSearch />} />
         </Routes>
       </Router>
+      </AlertProvider>
     </Provider>
   );
 }

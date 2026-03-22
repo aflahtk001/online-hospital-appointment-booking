@@ -95,3 +95,29 @@
 [2026-03-17T10:39:40.950Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
 [2026-03-17T10:39:45.889Z] [VerifService] API response status: 200
 [2026-03-17T10:39:45.891Z] [VerifService] Fetching full details for doctorId: 629042
+[2026-03-22T05:08:18.031Z] [DoctorController] Checking trust score for doctor ID: 69b92309e4fe91aa9a55f8c2
+[2026-03-22T05:08:18.212Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-22T05:08:19.783Z] [VerifService] Session init status: 200
+[2026-03-22T05:08:19.785Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 1004
+[2026-03-22T05:08:23.292Z] [VerifService] API response status: 200
+[2026-03-22T05:08:23.294Z] [VerifService] Found exact match for council: Travancore Cochin Medical Council, Trivandrum
+[2026-03-22T05:08:23.296Z] [VerifService] Fetching full details for doctorId: 584244
+[2026-03-22T05:08:36.126Z] [DoctorController] Checking trust score for doctor ID: 69b52a427711313f517ecfb9
+[2026-03-22T05:08:36.300Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-22T05:08:37.685Z] [VerifService] Session init status: 200
+[2026-03-22T05:08:37.687Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 12345
+[2026-03-22T05:08:41.592Z] [VerifService] API response status: 200
+[2026-03-22T05:08:41.594Z] [VerifService] Fetching full details for doctorId: 629042
+[2026-03-22T05:18:34.971Z] [DoctorController] Checking trust score for doctor ID: 69bf79fa76357197e3689073
+[2026-03-22T05:18:35.178Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-22T05:18:36.748Z] [VerifService] Session init status: 200
+[2026-03-22T05:18:36.750Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: vsdpoi
+[2026-03-22T05:18:40.048Z] [VerifService] API response status: 200
+[2026-03-22T05:18:40.051Z] [VerifService] No match found for RegNo: vsdpoi
+[2026-03-22T05:19:11.157Z] [DoctorController] Checking trust score for doctor ID: 69b90bfac914e3649656da8c
+[2026-03-22T05:19:11.348Z] [VerifService] Initializing session: https://www.nmc.org.in/information-desk/indian-medical-register/
+[2026-03-22T05:19:12.777Z] [VerifService] Session init status: 200
+[2026-03-22T05:19:12.778Z] [VerifService] Calling API: https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getPaginatedDoctor for RegNo: 74298
+[2026-03-22T05:19:16.458Z] [VerifService] API response status: 200
+[2026-03-22T05:19:16.460Z] [VerifService] Found exact match for council: Travancore Cochin Medical Council, Trivandrum
+[2026-03-22T05:19:16.462Z] [VerifService] Fetching full details for doctorId: 12515412

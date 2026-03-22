@@ -5,12 +5,14 @@ import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
 import NotificationBell from '../components/NotificationBell';
+import { useAlert } from '../context/AlertContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function DoctorDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { showAlert } = useAlert();
     const { user } = useSelector((state) => state.auth);
 
     const [appointments, setAppointments] = useState([]);
@@ -84,7 +86,7 @@ function DoctorDashboard() {
             setShowHistoryModal(true);
         } catch (error) {
             console.error(error);
-            alert('Failed to fetch medical records');
+            showAlert('Failed to fetch medical records', 'error');
         }
     };
 
@@ -160,17 +162,17 @@ function DoctorDashboard() {
             };
 
             await axios.post(`${API_URL}/api/doctors/profile`, payload, config);
-            alert('Profile Created Successfully!');
+            showAlert('Profile Created Successfully!', 'success');
             setIsProfileMissing(false);
             fetchAppointments();
         } catch (error) {
             console.error(error);
-            alert('Failed to create profile');
+            showAlert('Failed to create profile', 'error');
         }
     };
 
     const handleCertificateUpload = async (e) => {
-        if (!certificateFile) return alert('Please select a file first');
+        if (!certificateFile) return showAlert('Please select a file first', 'warning');
         
         const formData = new FormData();
         formData.append('certificate', certificateFile);
@@ -184,12 +186,12 @@ function DoctorDashboard() {
                 }
             };
             const res = await axios.post(`${API_URL}/api/doctors/imr-certificate`, formData, config);
-            alert('Certificate Uploaded Successfully!');
+            showAlert('Certificate Uploaded Successfully!', 'success');
             setDoctorProfile(prev => ({ ...prev, imrCertificate: res.data.imrCertificate }));
             setCertificateFile(null);
         } catch (error) {
             console.error(error);
-            alert('Failed to upload certificate');
+            showAlert('Failed to upload certificate', 'error');
         } finally {
             setUploading(false);
         }
@@ -246,20 +248,20 @@ function DoctorDashboard() {
                     );
                     setAppointments(updatedAppointments);
                     setCurrentPatient(null);
-                    alert("Previous patient marked completed. Queue is now empty.");
+                    showAlert("Previous patient marked completed. Queue is now empty.", 'info');
                 } else {
-                    alert("No patients waiting in queue");
+                    showAlert("No patients waiting in queue", 'info');
                 }
             }
         } catch (error) {
             console.error("Error calling patient:", error);
-            alert("Failed to update status");
+            showAlert("Failed to update status", 'error');
         }
     };
 
     const finishCurrentPatient = async () => {
         if (!currentPatient) {
-            alert("No patient is currently being served");
+            showAlert("No patient is currently being served", 'warning');
             return;
         }
 
@@ -273,10 +275,10 @@ function DoctorDashboard() {
             
             setAppointments(updatedAppointments);
             setCurrentPatient(null);
-            alert("Patient marked as completed");
+            showAlert("Patient marked as completed", 'success');
         } catch (error) {
             console.error("Error finishing patient:", error);
-            alert("Failed to update status");
+            showAlert("Failed to update status", 'error');
         }
     };
 
@@ -311,7 +313,7 @@ function DoctorDashboard() {
             };
 
             await axios.post(`${API_URL}/api/prescriptions`, payload, config);
-            alert('Prescription Sent Successfully');
+            showAlert('Prescription Sent Successfully', 'success');
             setShowPrescriptionModal(false);
             setPrescriptionData({
                 medicines: [{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }],
@@ -320,7 +322,7 @@ function DoctorDashboard() {
             });
         } catch (error) {
             console.error(error);
-            alert('Failed to send prescription: ' + (error.response?.data?.message || error.message));
+            showAlert('Failed to send prescription: ' + (error.response?.data?.message || error.message), 'error');
         }
     };
 
@@ -329,11 +331,11 @@ function DoctorDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
-            alert(res.data.message);
+            showAlert(res.data.message, 'success');
             setNotificationForm({ targetGroup: 'patients_today', message: '' });
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Failed to send notification');
+            showAlert(error.response?.data?.message || 'Failed to send notification', 'error');
         }
     };
 

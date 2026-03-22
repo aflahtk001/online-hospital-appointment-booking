@@ -11,7 +11,7 @@ const getSystemStats = async (req, res) => {
         const { date } = req.query;
         const totalPatients = await User.countDocuments({ role: 'patient' });
         const totalDoctors = await Doctor.countDocuments({ status: 'approved' });
-        const totalHospitals = await Hospital.countDocuments({ isApproved: true });
+        const totalHospitals = await Hospital.countDocuments({ status: 'approved' });
         const totalAppointments = await Appointment.countDocuments();
 
         // Specific Date Appointments

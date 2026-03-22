@@ -5,12 +5,14 @@ import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import { HiCheck, HiX, HiEye } from 'react-icons/hi';
 import NotificationBell from '../components/NotificationBell';
+import { useAlert } from '../context/AlertContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function AdminDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { showAlert } = useAlert();
     const { user } = useSelector((state) => state.auth);
 
     const [activeTab, setActiveTab] = useState('pending');
@@ -127,11 +129,11 @@ function AdminDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
-            alert(res.data.message);
+            showAlert(res.data.message, 'success');
             setNotificationForm({ targetGroup: 'all_hospitals', message: '' });
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Failed to send notification');
+            showAlert(error.response?.data?.message || 'Failed to send notification', 'error');
         }
     };
 

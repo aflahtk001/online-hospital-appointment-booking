@@ -5,12 +5,14 @@ import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import io from 'socket.io-client';
 import NotificationBell from '../components/NotificationBell';
+import { useAlert } from '../context/AlertContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function PatientDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { showAlert } = useAlert();
     const { user } = useSelector((state) => state.auth);
     const [appointments, setAppointments] = useState([]);
     const [patientProfile, setPatientProfile] = useState(null);
@@ -140,7 +142,7 @@ function PatientDashboard() {
             window.location.reload();
         } catch (error) {
             console.error(error);
-            alert('Error creating profile');
+            showAlert('Error creating profile', 'error');
         }
     };
 
@@ -172,7 +174,7 @@ function PatientDashboard() {
 
             // Reset after small delay to show 100%
             setTimeout(() => {
-                alert('File Uploaded Successfully');
+                showAlert('File Uploaded Successfully', 'success');
                 setRecordTitle('');
                 setUploadFile(null);
                 setUploadProgress(0);
@@ -185,7 +187,7 @@ function PatientDashboard() {
         } catch (error) {
             console.error(error);
             setUploadProgress(0);
-            alert('Upload failed: ' + (error.response?.data?.message || error.message));
+            showAlert('Upload failed: ' + (error.response?.data?.message || error.message), 'error');
         }
     }
 

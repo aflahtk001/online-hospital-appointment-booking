@@ -4,6 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useAlert } from '../context/AlertContext';
 
 function DoctorSearch() {
     const [doctors, setDoctors] = useState([]);
@@ -16,6 +17,7 @@ function DoctorSearch() {
 
     const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
+    const { showAlert } = useAlert();
 
     // Booking State
     const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -56,13 +58,13 @@ function DoctorSearch() {
 
     const handleBookClick = (doctor) => {
         if (!user) {
-            alert('Please login to book an appointment');
+            showAlert('Please login to book an appointment', 'warning');
             navigate('/login');
             return;
         }
         // Only patients can book
         if (user.role !== 'patient') {
-            alert('only patients can book appointments');
+            showAlert('only patients can book appointments', 'warning');
             return;
         }
         setSelectedDoctor(doctor);
@@ -70,7 +72,7 @@ function DoctorSearch() {
 
     const confirmBooking = async () => {
         if (!appointmentDate) {
-            alert('Please select a date');
+            showAlert('Please select a date', 'warning');
             return;
         }
         setBookLoading(true);
@@ -88,12 +90,12 @@ function DoctorSearch() {
                 appointmentDate,
                 type: 'visit'
             }, config);
-            alert('Appointment Booked Successfully!');
+            showAlert('Appointment Booked Successfully!', 'success');
             setSelectedDoctor(null);
             setAppointmentDate('');
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Booking Failed. Make sure you have a Patient Profile created.');
+            showAlert(error.response?.data?.message || 'Booking Failed. Make sure you have a Patient Profile created.', 'error');
         } finally {
             setBookLoading(false);
         }

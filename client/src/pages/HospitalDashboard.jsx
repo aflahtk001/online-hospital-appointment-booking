@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
 import axios from 'axios';
 import NotificationBell from '../components/NotificationBell';
+import { useAlert } from '../context/AlertContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function HospitalDashboard() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { showAlert } = useAlert();
     const { user } = useSelector((state) => state.auth);
 
     const [hospital, setHospital] = useState(null);
@@ -98,7 +100,7 @@ function HospitalDashboard() {
     };
 
     const handleUploadCertificate = async (file, type) => {
-        if (!file) return alert('Please select a file first');
+        if (!file) return showAlert('Please select a file first', 'warning');
         
         const formData = new FormData();
         formData.append('certificate', file);
@@ -118,10 +120,10 @@ function HospitalDashboard() {
             if (type === 'reg') setRegCertUrl(res.data.url);
             else setAccCertUrl(res.data.url);
             
-            alert('Certificate Uploaded Successfully!');
+            showAlert('Certificate Uploaded Successfully!', 'success');
         } catch (error) {
             console.error(error);
-            alert('Failed to upload certificate');
+            showAlert('Failed to upload certificate', 'error');
         } finally {
             if (type === 'reg') setIsUploadingReg(false);
             else setIsUploadingAcc(false);
@@ -129,7 +131,7 @@ function HospitalDashboard() {
     };
 
     const handleUploadDoctorCertificate = async () => {
-        if (!certificateFile) return alert('Please select a file first');
+        if (!certificateFile) return showAlert('Please select a file first', 'warning');
         
         const formData = new FormData();
         formData.append('certificate', certificateFile);
@@ -144,10 +146,10 @@ function HospitalDashboard() {
             };
             const res = await axios.post(`${API_URL}/api/hospitals/upload-certificate`, formData, config);
             setDoctorCertUrl(res.data.url);
-            alert('Doctor Certificate Uploaded Successfully!');
+            showAlert('Doctor Certificate Uploaded Successfully!', 'success');
         } catch (error) {
             console.error(error);
-            alert('Failed to upload certificate');
+            showAlert('Failed to upload certificate', 'error');
         } finally {
             setIsUploadingDoctorCert(false);
         }
@@ -178,12 +180,12 @@ function HospitalDashboard() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            alert('Hospital Registered Successfully!');
+            showAlert('Hospital Registered Successfully!', 'success');
             setShowRegisterForm(false);
             fetchHospitalData();
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Failed to register hospital');
+            showAlert(error.response?.data?.message || 'Failed to register hospital', 'error');
         }
     };
 
@@ -192,11 +194,11 @@ function HospitalDashboard() {
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             const res = await axios.post(`${API_URL}/api/notifications/send`, notificationForm, config);
-            alert(res.data.message);
+            showAlert(res.data.message, 'success');
             setNotificationForm({ targetGroup: 'hospital_doctors', message: '' });
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Failed to send notification');
+            showAlert(error.response?.data?.message || 'Failed to send notification', 'error');
         }
     };
 
@@ -212,7 +214,7 @@ function HospitalDashboard() {
             const submitData = { ...formData, imrCertificate: doctorCertUrl };
 
             await axios.post(`${API_URL}/api/hospitals/doctors`, submitData, config);
-            alert('Doctor Added Successfully');
+            showAlert('Doctor Added Successfully', 'success');
             setShowModal(false);
             setFormData({ name: '', email: '', password: '', specialization: '', experience: '', feesPerConsultation: '', registrationNumber: '', clinicName: '', location: '', dateOfBirth: '', qualifications: '', yearOfRegistration: '', stateMedicalCouncil: '', timings: '' });
             setCertificateFile(null);
@@ -220,7 +222,7 @@ function HospitalDashboard() {
             fetchHospitalData(); // Refresh list
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || 'Failed to add doctor');
+            showAlert(error.response?.data?.message || 'Failed to add doctor', 'error');
         }
     };
 
@@ -474,7 +476,7 @@ function HospitalDashboard() {
                             <button
                                 onClick={() => {
                                     if (hospital?.status !== 'approved') {
-                                        alert('Your hospital must be approved by the Super Admin before you can add doctors.');
+                                        showAlert('Your hospital must be approved by the Super Admin before you can add doctors.', 'warning');
                                         return;
                                     }
                                     setShowModal(true);
@@ -523,7 +525,7 @@ function HospitalDashboard() {
                                 <button 
                                     onClick={() => {
                                         if (hospital?.status !== 'approved') {
-                                            alert('Your hospital must be approved by the Super Admin before you can add doctors.');
+                                            showAlert('Your hospital must be approved by the Super Admin before you can add doctors.', 'warning');
                                             return;
                                         }
                                         setShowModal(true);
