@@ -148,15 +148,15 @@ function AdminDashboard() {
         <div className="min-h-screen bg-apple-gray p-4 sm:p-8">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
                     <div className="text-center sm:text-left">
                         <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
                         <p className="text-apple-subtext text-lg">Overview for {user && user.name}</p>
                     </div>
-                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                    <div className="flex justify-center sm:justify-end items-center w-full sm:w-auto mt-2 sm:mt-0">
                         <button
                             onClick={onLogout}
-                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                            className="bg-white text-apple-text border border-gray-200 px-8 py-2.5 sm:px-6 sm:py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
                         >
                             Sign Out
                         </button>
