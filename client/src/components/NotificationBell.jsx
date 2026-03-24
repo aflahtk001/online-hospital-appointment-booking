@@ -93,7 +93,7 @@ function NotificationBell() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                <div className="absolute right-[-65px] sm:right-0 mt-2 w-[290px] sm:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
                     <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                         <h3 className="font-semibold text-gray-800">Notifications</h3>
                         <span className="text-xs bg-apple-blue/10 text-apple-blue px-2 py-1 rounded-full font-medium">
@@ -101,7 +101,7 @@ function NotificationBell() {
                         </span>
                     </div>
                     
-                    <div className="max-h-[400px] overflow-y-auto">
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center text-gray-500 text-sm">
                                 <p>No notifications yet</p>
