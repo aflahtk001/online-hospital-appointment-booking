@@ -92,12 +92,32 @@ const sendNotification = async (req, res) => {
         
         // 2. Hospital Admin Sending Logic
         else if (senderRole === 'hospital_admin') {
-            if (targetGroup === 'hospital_doctors') {
-                const hospital = await Hospital.findOne({ admins: senderId });
-                if (!hospital) return res.status(404).json({ message: 'Hospital profile not found' });
+            const hospital = await Hospital.findOne({ admins: senderId });
+            if (!hospital) return res.status(404).json({ message: 'Hospital profile not found' });
 
+            if (targetGroup === 'hospital_doctors') {
                 const doctors = await User.find({ role: 'doctor', hospitalId: hospital._id }).select('_id');
                 recipientIds = doctors.map(d => d._id);
+            } else if (targetGroup === 'hospital_patients') {
+                // Find all doctors belonging to this hospital
+                const doctorUsers = await User.find({ role: 'doctor', hospitalId: hospital._id }).select('_id');
+                const doctorUserIds = doctorUsers.map(d => d._id);
+                
+                // Find doctor profiles for these users
+                const doctorProfiles = await Doctor.find({ user: { $in: doctorUserIds } }).select('_id');
+                const doctorProfileIds = doctorProfiles.map(d => d._id);
+                
+                // Find all appointments for these doctors
+                const appointments = await Appointment.find({ doctor: { $in: doctorProfileIds } }).select('patient');
+                
+                // Extract unique patient profile IDs
+                const uniquePatientProfiles = [...new Set(appointments.map(a => a.patient.toString()))];
+                
+                // Look up Patient model to get user references
+                const Patient = require('../models/Patient');
+                const patientDocs = await Patient.find({ _id: { $in: uniquePatientProfiles } }).select('user');
+                
+                recipientIds = patientDocs.map(p => p.user);
             } else {
                 return res.status(400).json({ message: 'Invalid target group for Hospital Admin' });
             }

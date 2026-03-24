@@ -568,20 +568,34 @@ function HospitalDashboard() {
 
                         {/* Send Notification Section */}
                         {hospital && hospital.status === 'approved' && (
-                            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 mt-8">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="p-2 bg-blue-100 rounded-xl text-xl">📢</div>
-                                    <h2 className="text-xl font-bold text-apple-text">Notify Doctors</h2>
+                                    <h2 className="text-xl font-bold text-apple-text">Broadcast Message</h2>
                                 </div>
                                 <form onSubmit={handleSendNotification} className="space-y-4">
-                                    <textarea 
-                                        value={notificationForm.message}
-                                        onChange={(e) => setNotificationForm({...notificationForm, message: e.target.value})}
-                                        required
-                                        rows="3"
-                                        placeholder="Type broadcast message for your doctors..."
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text text-sm transition-all resize-none"
-                                    ></textarea>
+                                    <div>
+                                        <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Send To</label>
+                                        <select 
+                                            value={notificationForm.targetGroup}
+                                            onChange={(e) => setNotificationForm({...notificationForm, targetGroup: e.target.value})}
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text font-medium transition-all"
+                                        >
+                                            <option value="hospital_doctors">All Our Doctors</option>
+                                            <option value="hospital_patients">All Our Patients</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-apple-subtext mb-1 ml-1">Message</label>
+                                        <textarea 
+                                            value={notificationForm.message}
+                                            onChange={(e) => setNotificationForm({...notificationForm, message: e.target.value})}
+                                            required
+                                            rows="3"
+                                            placeholder="Type broadcast message..."
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50 text-apple-text text-sm transition-all resize-none"
+                                        ></textarea>
+                                    </div>
                                     <button 
                                         type="submit"
                                         className="w-full bg-apple-blue text-white px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:bg-blue-600 transition-all hover:shadow-md"
