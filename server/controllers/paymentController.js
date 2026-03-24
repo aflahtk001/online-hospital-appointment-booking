@@ -4,7 +4,8 @@ const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 
-const razorpay = new Razorpay({
+// Helper to get a fresh Razorpay instance (reads env at call time)
+const getRazorpay = () => new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
@@ -33,7 +34,7 @@ const createOrder = async (req, res) => {
         const amountInPaise = fee * 100; // Razorpay works in smallest currency unit
 
         // 3. Create Razorpay order
-        const razorpayOrder = await razorpay.orders.create({
+        const razorpayOrder = await getRazorpay().orders.create({
             amount: amountInPaise,
             currency: 'INR',
             receipt: `receipt_${Date.now()}`,
