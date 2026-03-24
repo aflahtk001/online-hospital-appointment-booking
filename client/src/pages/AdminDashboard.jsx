@@ -207,12 +207,12 @@ function AdminDashboard() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex justify-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100 max-w-md mx-auto">
+                <div className="flex justify-center bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-gray-100 max-w-md mx-auto mb-6">
                     {['pending', 'approved', 'rejected'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`flex-1 px-6 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${activeTab === tab ? 'bg-apple-blue text-white shadow-md' : 'text-apple-subtext hover:bg-gray-50'}`}
+                            className={`flex-1 px-2 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold capitalize transition-all ${activeTab === tab ? 'bg-apple-blue text-white shadow-md' : 'text-apple-subtext hover:bg-gray-50'}`}
                         >
                             {tab}
                         </button>
@@ -354,10 +354,10 @@ function AdminDashboard() {
 
             {/* Detail Modal */}
             {selectedItem && (
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all">
-                        <div className="flex justify-between items-center mb-6 border-b pb-4">
-                            <h2 className="text-2xl font-bold text-apple-text">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-end sm:items-center z-50 p-0 sm:p-4">
+                    <div className="bg-white p-5 sm:p-8 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all">
+                        <div className="flex justify-between items-center mb-4 sm:mb-6 border-b pb-3 sm:pb-4">
+                            <h2 className="text-xl sm:text-2xl font-bold text-apple-text">
                                 {detailType === 'doctor' ? 'Doctor Profile Details' : 'Hospital Facility Details'}
                             </h2>
                             <button onClick={() => { setSelectedItem(null); setTrustScoreData(null); }} className="text-gray-400 hover:text-gray-600 p-2">
@@ -425,11 +425,11 @@ function AdminDashboard() {
 
                                         {trustScoreData && (
                                             <div className="space-y-4 animate-in fade-in duration-500">
-                                                <div className="flex flex-col sm:flex-row items-center gap-6">
-                                                    <div className={`w-24 h-24 rounded-full border-4 flex-shrink-0 flex items-center justify-center text-3xl font-black ${trustScoreData.trust_score >= 80 ? 'border-green-500 text-green-600' : trustScoreData.trust_score >= 50 ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-600'}`}>
+                                                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                                                    <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 flex-shrink-0 flex items-center justify-center text-2xl sm:text-3xl font-black ${trustScoreData.trust_score >= 80 ? 'border-green-500 text-green-600' : trustScoreData.trust_score >= 50 ? 'border-yellow-500 text-yellow-600' : 'border-red-500 text-red-600'}`}>
                                                         {trustScoreData.trust_score}%
                                                     </div>
-                                                    <div className="flex-1 grid grid-cols-3 gap-2 w-full">
+                                                    <div className="flex-1 grid grid-cols-1 min-[400px]:grid-cols-3 gap-2 w-full">
                                                         <MatchBadge label="Name" match={trustScoreData.comparison_result.name_match} />
                                                         <MatchBadge label="Qualification" match={trustScoreData.comparison_result.qualification_match} />
                                                         <MatchBadge label="Council" match={trustScoreData.comparison_result.council_match} />
@@ -565,9 +565,9 @@ function MatchBadge({ label, match }) {
 
 function DetailField({ label, value, isLongText }) {
     return (
-        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-            <p className="text-xs font-semibold text-apple-subtext uppercase tracking-widest mb-1">{label}</p>
-            <p className={`text-apple-text font-medium ${isLongText ? 'text-sm leading-relaxed' : 'text-base'}`}>
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-2xl border border-gray-100">
+            <p className="text-[10px] sm:text-xs font-semibold text-apple-subtext uppercase tracking-widest mb-1">{label}</p>
+            <p className={`text-apple-text font-medium break-words ${isLongText ? 'text-xs sm:text-sm leading-relaxed' : 'text-sm sm:text-base'}`}>
                 {value || 'Not provided'}
             </p>
         </div>
@@ -577,11 +577,11 @@ function DetailField({ label, value, isLongText }) {
 // Simple internal component for stats
 function StatCard({ title, value, icon }) {
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6 group hover:shadow-md transition-all hover:border-apple-blue/20">
-            <div className="p-4 bg-gray-50 rounded-2xl text-3xl group-hover:scale-110 transition-transform">{icon || '📊'}</div>
-            <div className="flex flex-col">
-                <span className="text-3xl font-bold text-apple-text tracking-tighter leading-none">{value}</span>
-                <span className="text-apple-subtext font-medium text-sm mt-1 uppercase tracking-wide">{title}</span>
+        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 sm:gap-6 group hover:shadow-md transition-all hover:border-apple-blue/20">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-2xl text-2xl sm:text-3xl group-hover:scale-110 transition-transform">{icon || '📊'}</div>
+            <div className="flex flex-col min-w-0">
+                <span className="text-2xl sm:text-3xl font-bold text-apple-text tracking-tighter leading-none truncate">{value}</span>
+                <span className="text-apple-subtext font-medium text-xs sm:text-sm mt-1 uppercase tracking-wide truncate">{title}</span>
             </div>
         </div>
     );
@@ -589,8 +589,8 @@ function StatCard({ title, value, icon }) {
 
 function ChartCard({ title, data, dataKey, color }) {
     return (
-        <div className="flex flex-col h-[280px]">
-            <h3 className="text-sm font-bold text-apple-subtext uppercase tracking-widest mb-4 pl-2">{title}</h3>
+        <div className="flex flex-col h-[240px] sm:h-[280px]">
+            <h3 className="text-xs sm:text-sm font-bold text-apple-subtext uppercase tracking-widest mb-3 sm:mb-4 pl-2 truncate">{title}</h3>
             <div className="flex-grow w-full bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
