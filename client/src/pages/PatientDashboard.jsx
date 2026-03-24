@@ -207,14 +207,33 @@ function PatientDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
-            <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
-                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
-                        <div>
-                            <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Patient Portal</h1>
-                            <p className="text-apple-subtext text-lg">Welcome back, {user && user.name}</p>
+        <div className="min-h-screen bg-apple-gray flex flex-col">
+            {/* Navigation Bar */}
+            <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-8 py-4 sticky top-0 z-40 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+                <div className="max-w-7xl mx-auto flex justify-between items-center w-full">
+                    <div className="flex items-center">
+                        <h1 className="text-xl sm:text-2xl font-bold text-apple-text tracking-tight">Patient Portal</h1>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-4 py-1.5 sm:px-6 sm:py-2 rounded-full hover:bg-gray-50 font-semibold transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 sm:p-8 relative">
+                <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+                    {/* Page Header */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                        <div className="text-left">
+                            <h1 className="text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
+                            <p className="text-apple-subtext text-lg mt-1">Welcome back, {user && user.name}</p>
                         </div>
                         {liveToken && (
                             <div className="bg-apple-blue/10 border border-apple-blue/20 px-6 py-2 rounded-2xl flex flex-col items-center">
@@ -223,16 +242,6 @@ function PatientDashboard() {
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
-                        <NotificationBell />
-                        <button
-                            onClick={onLogout}
-                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
-                        >
-                            Sign Out
-                        </button>
-                    </div>
-                </div>
 
                 {!patientProfile && (
                     <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-3xl flex justify-between items-center shadow-sm">
@@ -542,6 +551,7 @@ function PatientDashboard() {
                     </div>
                 </div>
             )}
+            </main>
         </div>
     );
 }

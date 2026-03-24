@@ -579,35 +579,46 @@ function DoctorDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-apple-gray p-4 sm:p-8 relative">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
-                    <div className="text-center sm:text-left flex items-center gap-4">
-                        <div>
-                            <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Doctor's Console</h1>
-                            <p className="text-apple-subtext text-lg">Welcome, Dr. {user && user.name}</p>
-                        </div>
-                        {doctorProfile && (
-                            <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
-                                doctorProfile.status === 'approved' ? 'bg-green-100 text-green-700 border border-green-200' :
-                                doctorProfile.status === 'rejected' ? 'bg-red-100 text-red-700 border border-red-200' :
-                                'bg-amber-100 text-amber-700 border border-amber-200'
-                            }`}>
-                                {doctorProfile.status?.toUpperCase()}
-                            </span>
-                        )}
+        <div className="min-h-screen bg-apple-gray flex flex-col">
+            {/* Navigation Bar */}
+            <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-8 py-4 sticky top-0 z-40 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+                <div className="max-w-7xl mx-auto flex justify-between items-center w-full">
+                    <div className="flex items-center">
+                        <h1 className="text-xl sm:text-2xl font-bold text-apple-text tracking-tight">Doctor Portal</h1>
                     </div>
-                    <div className="flex items-center gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <NotificationBell />
                         <button
                             onClick={onLogout}
-                            className="bg-white text-apple-text border border-gray-200 px-6 py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md"
+                            className="bg-white text-apple-text border border-gray-200 px-4 py-1.5 sm:px-6 sm:py-2 rounded-full hover:bg-gray-50 font-semibold transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
                         >
                             Sign Out
                         </button>
                     </div>
                 </div>
+            </nav>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 sm:p-8 relative">
+                <div className="max-w-7xl mx-auto space-y-8">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                        <div className="text-left flex items-center gap-4">
+                            <div>
+                                <h1 className="text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">Console</h1>
+                                <p className="text-apple-subtext text-lg mt-1">Welcome, Dr. {user && user.name}</p>
+                            </div>
+                            {doctorProfile && (
+                                <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
+                                    doctorProfile.status === 'approved' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                    doctorProfile.status === 'rejected' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                    'bg-amber-100 text-amber-700 border border-amber-200'
+                                }`}>
+                                    {doctorProfile.status?.toUpperCase()}
+                                </span>
+                            )}
+                        </div>
+                    </div>
 
                 {/* Tab Navigation */}
                 <div className="flex space-x-4 border-b border-gray-200 overflow-x-auto no-scrollbar">
@@ -954,6 +965,7 @@ function DoctorDashboard() {
                     </div>
                 )}
             </div>
+            </main>
         </div>
     );
 }
