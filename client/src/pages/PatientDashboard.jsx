@@ -231,12 +231,12 @@ function PatientDashboard() {
                 <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                     {/* Page Header */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-                        <div className="text-left">
+                        <div className="text-left flex-1 break-words">
                             <h1 className="text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
-                            <p className="text-apple-subtext text-lg mt-1">Welcome back, {user && user.name}</p>
+                            <p className="text-apple-subtext text-lg mt-1 break-words">Welcome back, {user && user.name}</p>
                         </div>
                         {liveToken && (
-                            <div className="bg-apple-blue/10 border border-apple-blue/20 px-6 py-2 rounded-2xl flex flex-col items-center">
+                            <div className="bg-apple-blue/10 border border-apple-blue/20 px-6 py-2 rounded-2xl flex flex-col items-center w-full sm:w-auto shadow-sm">
                                 <span className="text-[10px] text-apple-blue font-bold uppercase tracking-widest">Your Token</span>
                                 <span className="text-2xl font-black text-apple-blue tracking-tighter">#{liveToken.tokenNumber}</span>
                             </div>
@@ -244,14 +244,14 @@ function PatientDashboard() {
                     </div>
 
                 {!patientProfile && (
-                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-3xl flex justify-between items-center shadow-sm">
-                        <div>
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+                        <div className="flex-1 break-words">
                             <p className="font-bold text-lg mb-1">Complete your Profile</p>
-                            <p className="text-yellow-700">You need to complete your medical profile before booking appointments.</p>
+                            <p className="text-yellow-700 text-sm sm:text-base">You need to complete your medical profile before booking appointments.</p>
                         </div>
                         <button
                             onClick={() => setShowProfileModal(true)}
-                            className="bg-yellow-500 text-white px-6 py-2 rounded-full font-medium hover:bg-yellow-600 transition-colors shadow-sm"
+                            className="bg-yellow-500 text-white w-full sm:w-auto px-6 py-2.5 rounded-full font-medium hover:bg-yellow-600 transition-colors shadow-sm"
                         >
                             Create Profile
                         </button>
@@ -312,18 +312,18 @@ function PatientDashboard() {
                             <div className="space-y-4">
                                 {prescriptions.map((pres) => (
                                     <div key={pres._id} className="border border-gray-100 p-5 rounded-2xl bg-apple-gray/30 hover:bg-apple-gray transition-colors group">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <p className="font-bold text-lg text-apple-text">{pres.diagnosis}</p>
-                                                <p className="text-sm text-apple-subtext">Dr. {pres.doctor?.user?.name || 'Unknown'}</p>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-1 sm:gap-2">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-base sm:text-lg text-apple-text truncate">{pres.diagnosis}</p>
+                                                <p className="text-sm text-apple-subtext truncate">Dr. {pres.doctor?.user?.name || 'Unknown'}</p>
                                             </div>
-                                            <span className="text-xs text-apple-subtext bg-white px-2 py-1 rounded-full border border-gray-200">{new Date(pres.date).toLocaleDateString()}</span>
+                                            <span className="text-xs text-apple-subtext bg-white px-2 py-1 rounded-full border border-gray-200 whitespace-nowrap">{new Date(pres.date).toLocaleDateString()}</span>
                                         </div>
-                                        <div className="flex justify-between items-center mt-3">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-3 gap-3">
                                             <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{pres.medicines.length} Medicines</span>
                                             <button
                                                 onClick={() => setSelectedPrescription(pres)}
-                                                className="text-apple-blue text-sm font-semibold hover:underline"
+                                                className="w-full sm:w-auto text-center text-apple-blue bg-blue-50 sm:bg-transparent py-2 sm:py-0 rounded-xl text-sm font-semibold hover:underline transition-colors"
                                             >
                                                 View Details
                                             </button>
@@ -345,14 +345,14 @@ function PatientDashboard() {
                             <h3 className="font-semibold mb-3 text-sm text-apple-text">Upload New Record</h3>
                             <div className="flex flex-col gap-3">
                                 <input type="text" placeholder="Record Title (e.g., Blood Test)" className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-white text-sm" value={recordTitle} onChange={(e) => setRecordTitle(e.target.value)} required />
-                                <div className="flex gap-2">
-                                    <select className="w-1/2 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-white text-sm" value={recordType} onChange={(e) => setRecordType(e.target.value)}>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <select className="w-full sm:w-1/2 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-white text-sm" value={recordType} onChange={(e) => setRecordType(e.target.value)}>
                                         <option value="Report">Report</option>
                                         <option value="X-Ray">X-Ray</option>
                                         <option value="Prescription">Prescription</option>
                                         <option value="Other">Other</option>
                                     </select>
-                                    <label className="w-1/2 cursor-pointer bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-apple-subtext hover:text-apple-text hover:border-gray-300 transition-colors text-center truncate">
+                                    <label className="w-full sm:w-1/2 cursor-pointer bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-apple-subtext hover:text-apple-text hover:border-gray-300 transition-colors text-center truncate">
                                         {uploadFile ? uploadFile.name : 'Choose File'}
                                         <input type="file" onChange={(e) => setUploadFile(e.target.files[0])} accept="image/*,.pdf" className="hidden" required />
                                     </label>
@@ -448,17 +448,17 @@ function PatientDashboard() {
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 mt-8">
+                            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setShowProfileModal(false)}
-                                    className="bg-gray-100 text-apple-subtext px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors"
+                                    className="w-full sm:w-auto bg-gray-100 text-apple-subtext px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors order-2 sm:order-1"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg"
+                                    className="w-full sm:w-auto bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg order-1 sm:order-2"
                                 >
                                     Save Profile
                                 </button>
@@ -488,12 +488,12 @@ function PatientDashboard() {
                             </div>
 
                             <div>
-                                <div className="flex justify-between items-center mb-3">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-3">
                                     <p className="text-xs text-apple-subtext uppercase tracking-wide font-semibold">Medicines</p>
                                     <button
                                         onClick={() => analyzePrescription(selectedPrescription.medicines)}
                                         disabled={isAnalyzing}
-                                        className="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full font-bold hover:bg-purple-200 transition-colors flex items-center gap-1"
+                                        className="w-full sm:w-auto text-xs bg-purple-100 text-purple-700 px-4 py-2 sm:px-3 sm:py-1.5 rounded-full font-bold hover:bg-purple-200 transition-colors flex items-center justify-center gap-1 shadow-sm"
                                     >
                                         {isAnalyzing ? '✨ Analyzing...' : '✨ Ask AI'}
                                     </button>
@@ -501,9 +501,9 @@ function PatientDashboard() {
                                 <div className="space-y-3">
                                     {selectedPrescription.medicines.map((med, idx) => (
                                         <div key={idx} className="bg-apple-gray/50 p-4 rounded-2xl border border-gray-100">
-                                            <div className="flex justify-between items-center mb-1">
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-1 sm:gap-0">
                                                 <span className="font-bold text-apple-text">{med.name}</span>
-                                                <span className="text-sm font-semibold text-apple-blue bg-blue-50 px-2 py-0.5 rounded-md">{med.dosage}</span>
+                                                <span className="text-sm font-semibold text-apple-blue bg-blue-50 px-2 py-0.5 rounded-md inline-block">{med.dosage}</span>
                                             </div>
                                             <div className="flex gap-4 text-xs text-gray-500 mb-2">
                                                 <span className="flex items-center gap-1">🕒 {med.frequency}</span>
