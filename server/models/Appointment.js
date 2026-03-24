@@ -45,7 +45,17 @@ const appointmentSchema = mongoose.Schema({
         enum: ['visit', 'video'],
         default: 'visit'
     },
-    notes: String
+    notes: String,
+    // Payment fields
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
+    },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
+    razorpaySignature: { type: String },
+    amountPaid: { type: Number }
 }, {
     timestamps: true
 });

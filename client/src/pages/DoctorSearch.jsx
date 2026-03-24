@@ -24,6 +24,22 @@ function DoctorSearch() {
     const [appointmentDate, setAppointmentDate] = useState('');
     const [bookLoading, setBookLoading] = useState(false);
 
+    // Load Razorpay script dynamically
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            if (document.getElementById('razorpay-script')) {
+                resolve(true);
+                return;
+            }
+            const script = document.createElement('script');
+            script.id = 'razorpay-script';
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
     // Fetch doctors on mount and when filters change
     const fetchDoctors = async () => {
         setLoading(true);
@@ -78,25 +94,74 @@ function DoctorSearch() {
         setBookLoading(true);
         try {
             const config = {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
+                headers: { Authorization: `Bearer ${user.token}` }
             };
             const hospitalId = selectedDoctor.hospital || '65b4c1e8f23a1c2d3e4f5a6b';
 
-            await axios.post(`${API_URL}/api/appointments`, {
+            // 1. Create Razorpay order and pending appointment on backend
+            const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
                 doctorId: selectedDoctor._id,
                 hospitalId: hospitalId,
                 appointmentDate,
                 type: 'visit'
             }, config);
-            showAlert('Appointment Booked Successfully!', 'success');
-            setSelectedDoctor(null);
-            setAppointmentDate('');
+
+            const { orderId, amount, appointmentId, fee, keyId } = orderRes.data;
+
+            // 2. Load Razorpay checkout script
+            const scriptLoaded = await loadRazorpayScript();
+            if (!scriptLoaded) {
+                showAlert('Failed to load payment gateway. Please check your internet connection.', 'error');
+                setBookLoading(false);
+                return;
+            }
+
+            // 3. Open Razorpay checkout popup
+            const options = {
+                key: keyId,
+                amount: amount,
+                currency: 'INR',
+                name: 'Hospital Appointment',
+                description: `Consultation with Dr. ${selectedDoctor.user?.name}`,
+                order_id: orderId,
+                handler: async (response) => {
+                    try {
+                        // 4. Verify payment on backend
+                        const verifyRes = await axios.post(`${API_URL}/api/payments/verify`, {
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                            appointmentId: appointmentId
+                        }, config);
+
+                        showAlert(`✅ Payment successful! Your token is #${verifyRes.data.token.number} (${verifyRes.data.token.displayToken})`, 'success');
+                        setSelectedDoctor(null);
+                        setAppointmentDate('');
+                    } catch (verifyError) {
+                        showAlert('Payment verification failed. Please contact support.', 'error');
+                        console.error('Verify error:', verifyError);
+                    }
+                },
+                prefill: {
+                    name: user.name,
+                    email: user.email
+                },
+                theme: { color: '#007aff' },
+                modal: {
+                    ondismiss: () => {
+                        showAlert('Payment was cancelled. Your slot is held for a few minutes.', 'warning');
+                        setBookLoading(false);
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+            setBookLoading(false);
+
         } catch (error) {
             console.error(error);
             showAlert(error.response?.data?.message || 'Booking Failed. Make sure you have a Patient Profile created.', 'error');
-        } finally {
             setBookLoading(false);
         }
     };
@@ -198,8 +263,14 @@ function DoctorSearch() {
                 {selectedDoctor && (
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
                         <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-sm w-full transform transition-all scale-100">
-                            <h2 className="text-2xl font-bold mb-2 text-apple-text">Book Appointment</h2>
-                            <p className="text-apple-subtext mb-6">with {selectedDoctor.user?.name}</p>
+                            <h2 className="text-2xl font-bold mb-1 text-apple-text">Book Appointment</h2>
+                            <p className="text-apple-subtext mb-5">with Dr. {selectedDoctor.user?.name}</p>
+
+                            {/* Fee Badge */}
+                            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 flex justify-between items-center mb-6">
+                                <span className="text-sm text-apple-subtext font-medium">Consultation Fee</span>
+                                <span className="text-lg font-bold text-apple-blue">₹{selectedDoctor.feesPerConsultation || 200}</span>
+                            </div>
 
                             <div className="mb-6">
                                 <label className="block text-apple-subtext text-sm font-bold mb-2 ml-1">Select Date</label>
@@ -207,9 +278,11 @@ function DoctorSearch() {
                                     type="date"
                                     value={appointmentDate}
                                     onChange={(e) => setAppointmentDate(e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-apple-blue/50 bg-gray-50/50"
                                 />
                             </div>
+                            <p className="text-xs text-gray-400 mb-4 text-center">You'll be redirected to a secure payment page after selecting a date.</p>
                             <div className="flex flex-col sm:flex-row justify-end gap-3">
                                 <button
                                     onClick={() => setSelectedDoctor(null)}
@@ -220,9 +293,9 @@ function DoctorSearch() {
                                 <button
                                     onClick={confirmBooking}
                                     disabled={bookLoading}
-                                    className="w-full sm:w-auto bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="w-full sm:w-auto bg-apple-blue text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 shadow-md transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {bookLoading ? 'Booking...' : 'Confirm'}
+                                    {bookLoading ? 'Processing...' : `Pay ₹${selectedDoctor.feesPerConsultation || 200} & Book`}
                                 </button>
                             </div>
                         </div>

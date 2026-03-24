@@ -41,6 +41,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const path = require('path');
 
 // Routes
@@ -53,6 +54,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/records', medicalRecordRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
