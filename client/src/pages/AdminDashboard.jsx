@@ -6,6 +6,7 @@ import axios from 'axios';
 import { HiCheck, HiX, HiEye } from 'react-icons/hi';
 import { useAlert } from '../context/AlertContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import NotificationBell from '../components/NotificationBell';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -152,12 +153,15 @@ function AdminDashboard() {
                     <div className="flex items-center">
                         <h1 className="text-xl sm:text-2xl font-bold text-apple-text tracking-tight">Admin Portal</h1>
                     </div>
-                    <button
-                        onClick={onLogout}
-                        className="bg-white text-apple-text border border-gray-200 px-4 py-1.5 sm:px-6 sm:py-2 rounded-full hover:bg-gray-50 font-semibold transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
-                    >
-                        Sign Out
-                    </button>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <NotificationBell />
+                        <button
+                            onClick={onLogout}
+                            className="bg-white text-apple-text border border-gray-200 px-4 py-1.5 sm:px-6 sm:py-2 rounded-full hover:bg-gray-50 font-semibold transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             </nav>
 
