@@ -145,23 +145,33 @@ function AdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-apple-gray p-4 sm:p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
-                    <div className="text-center sm:text-left">
-                        <h1 className="text-3xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
-                        <p className="text-apple-subtext text-lg">Overview for {user && user.name}</p>
+        <div className="min-h-screen bg-apple-gray flex flex-col">
+            {/* Navigation Bar */}
+            <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-8 py-4 sticky top-0 z-40 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+                <div className="max-w-7xl mx-auto flex justify-between items-center w-full">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-apple-blue to-blue-600 rounded-xl flex items-center justify-center text-white text-lg shadow-sm border border-blue-500/20">
+                            ⚙️
+                        </div>
+                        <h1 className="text-xl sm:text-2xl font-bold text-apple-text tracking-tight hidden sm:block">Admin Portal</h1>
                     </div>
-                    <div className="flex justify-center sm:justify-end items-center w-full sm:w-auto mt-2 sm:mt-0">
-                        <button
-                            onClick={onLogout}
-                            className="bg-white text-apple-text border border-gray-200 px-8 py-2.5 sm:px-6 sm:py-2.5 rounded-full hover:bg-gray-50 font-medium transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
-                        >
-                            Sign Out
-                        </button>
-                    </div>
+                    <button
+                        onClick={onLogout}
+                        className="bg-white text-apple-text border border-gray-200 px-6 py-2 rounded-full hover:bg-gray-50 font-semibold transition-all shadow-sm hover:shadow-md text-sm sm:text-base flex items-center justify-center w-full sm:w-auto mt-0"
+                    >
+                        Sign Out
+                    </button>
                 </div>
+            </nav>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 sm:p-8">
+                <div className="max-w-7xl mx-auto space-y-8">
+                    {/* Page Header */}
+                    <div className="text-center sm:text-left mb-6">
+                        <h1 className="text-3xl sm:text-4xl font-semibold text-apple-text tracking-tight">Dashboard</h1>
+                        <p className="text-apple-subtext text-lg mt-1">Overview for {user && user.name}</p>
+                    </div>
 
                 {/* System Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -550,6 +560,7 @@ function AdminDashboard() {
                     </div>
                 </div>
             )}
+            </main>
         </div>
     );
 }
