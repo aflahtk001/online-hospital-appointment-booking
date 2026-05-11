@@ -8,7 +8,7 @@ import { useAlert } from '../context/AlertContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import NotificationBell from '../components/NotificationBell';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 function AdminDashboard() {
     const navigate = useNavigate();

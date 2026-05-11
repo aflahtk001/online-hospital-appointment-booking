@@ -6,7 +6,7 @@ import axios from 'axios';
 import NotificationBell from '../components/NotificationBell';
 import { useAlert } from '../context/AlertContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 function HospitalDashboard() {
     const navigate = useNavigate();
